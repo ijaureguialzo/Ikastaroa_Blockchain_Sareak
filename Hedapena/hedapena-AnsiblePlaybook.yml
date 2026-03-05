@@ -13,6 +13,12 @@
   vars:
     ansible_password: "{{ ssh_password }}"
   tasks:
+    # Cache SSH password so later plays (webserver, besu_nodes) can use it for ansible_password.
+    - name: Cache SSH password for later plays
+      ansible.builtin.set_fact:
+        cached_ssh_password: "{{ ssh_password }}"
+      cacheable: true
+
     # Install Docker and Compose v2 from Ubuntu repos (docker.io, docker-compose-v2).
     - name: Install Docker and Docker Compose v2
       ansible.builtin.apt:
@@ -38,7 +44,7 @@
   hosts: webserver
   become: true
   vars:
-    ansible_password: "{{ ssh_password }}"
+    ansible_password: "{{ cached_ssh_password }}"
     repo_root: "{{ playbook_dir }}/.."
   tasks:
     - name: Create besu directory in isard home
@@ -78,7 +84,7 @@
   hosts: besu_nodes
   become: true
   vars:
-    ansible_password: "{{ ssh_password }}"
+    ansible_password: "{{ cached_ssh_password }}"
   tasks:
     - name: Create besu directory in isard home
       ansible.builtin.file:
