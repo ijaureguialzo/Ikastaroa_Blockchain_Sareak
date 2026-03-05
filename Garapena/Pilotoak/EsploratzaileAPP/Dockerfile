@@ -1,0 +1,36 @@
+# Usar Node.js LTS como base
+FROM node:18-alpine AS builder
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar todas las dependencias (incluyendo devDependencies para el build)
+# RUN npm ci
+# Usar npm install en lugar de npm ci ya que package-lock.json puede no estar disponible
+RUN npm install
+
+# Copiar código fuente
+COPY . .
+
+# Build de producción
+RUN npm run build
+
+# Etapa de producción con nginx
+FROM nginx:alpine
+
+# Copiar build a nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copiar configuración de nginx
+# El WebServer nginx manejará el proxy y el resto de la configuración
+# El contenedor escucha en el puerto 5006 como está configurado en el WebServer
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Exponer puerto 5006
+#EXPOSE 5006
+
+# Comando de inicio
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  # Explorador de Bloques
+  block-explorer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: explorador-bloques
+    ports:
+      - "5006:5006"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Variables de entorno (opcional - puedes configurar aquí)
+    # environment:
+    #   - NODE_ENV=production

@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  ethstats:
+    build: ./ethstats-server
+    hostname: ethstats
+    restart: always
+    environment:
+      - WS_SECRET=asdf
+    ports:
+      - "3000:3000"
+    networks:
+      - server_network
+    #volumes:
+      #- ethstats_logs:/app/alertak/logs
+
+  esploratzaile:
+    build:
+      context: ../Pilotoak/EsploratzaileAPP
+      dockerfile: Dockerfile
+    hostname: esploratzaile
+    restart: always
+    networks:
+      - server_network
+  
+  webserver:
+    image: nginx:latest
+    hostname: webserver
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - server_network
+    volumes:
+      - ./nginx/:/etc/nginx/
+      - ./nginx/5xx.html:/www/error_pages/5xx.html
+      - ./nginx/default-page:/var/www/default:ro  # Mount default landing page (Read Only)
+      #- /etc/letsencrypt:/etc/letsencrypt:ro  # Mount SSL certs (Read Only)
+      #- /var/www/certbot:/var/www/certbot  # Mount the webroot for Certbot challenges
+
+    networks:
+      - server_network
+    #volumes:
+      #- ../Pilotoak/ZiurtagiriakAPP/blockchain-dump.sql:/docker-entrypoint-initdb.d/ziurtagiriak.sql
+      #- ../Pilotoak/EtiketaAPP/init_db.sql:/docker-entrypoint-initdb.d/etiketa.sql
+      #- ../Pilotoak/FormakuntzakAPP/init_db.sql:/docker-entrypoint-initdb.d/formakuntzakapp_dump.sql
+      #- db_data:/var/lib/mysql
+      #Nuevos scripts con: docker exec -i mariadb-container mysql -u root -p"your_password" < script.sql
+
+networks:
+  server_network:
+    name: server_network
+    driver: bridge
+
+#volumes:
+  #db_data:
+  #ethstats_logs:
+  #formakuntza_ziurtagiriak:
+  #mail_data:
+  #mail_state:
+  #mail_logs:
+  #mail_config:

@@ -1,0 +1,99 @@
+# Hedapena Ansible Playbook: deploy Besu nodes and web server.
+# Run from repository root. Requires: sshpass on control node; ansible.posix collection
+#   (install with: ansible-galaxy collection install ansible.posix).
+# Example: ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml
+
+# Ask for SSH password once at start; same password is used for all servers.
+- vars_prompt:
+    - name: ssh_password
+      prompt: "SSH password for user isard (same for all servers)"
+      private: true
+
+- name: Install Docker and Docker Compose on all servers
+  hosts: all_servers
+  become: true
+  vars:
+    ansible_password: "{{ ssh_password }}"
+  tasks:
+    # Install Docker and Compose v2 from Ubuntu repos (docker.io, docker-compose-v2).
+    - name: Install Docker and Docker Compose v2
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker service is started and enabled
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add user isard to docker group
+      ansible.builtin.user:
+        name: isard
+        groups: docker
+        append: true
+
+- name: Deploy web server (WebServer + Pilotoak) and start services
+  hosts: webserver
+  become: true
+  vars:
+    ansible_password: "{{ ssh_password }}"
+    repo_root: "{{ playbook_dir }}/.."
+  tasks:
+    # Synchronize copies from control node (src) to remote host (dest).
+    - name: Deploy WebServer files to ~/besu/WebServer
+      ansible.posix.synchronize:
+        src: "{{ repo_root }}/Garapena/WebServer/"
+        dest: "{{ deploy_home }}/besu/WebServer/"
+
+    - name: Deploy Pilotoak files to ~/besu/Pilotoak
+      ansible.posix.synchronize:
+        src: "{{ repo_root }}/Garapena/Pilotoak/"
+        dest: "{{ deploy_home }}/besu/Pilotoak/"
+
+    - name: Set ownership of besu directory to ansible_user
+      ansible.builtin.file:
+        path: "{{ deploy_home }}/besu"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: true
+
+    - name: Start web server stack with docker compose
+      ansible.builtin.shell:
+        cmd: docker compose -f docker-compose.yml up -d
+        chdir: "{{ deploy_home }}/besu/WebServer"
+      changed_when: true
+
+- name: Deploy Hedapena to Besu nodes and start each node
+  hosts: besu_nodes
+  become: true
+  vars:
+    ansible_password: "{{ ssh_password }}"
+  tasks:
+    # Synchronize copies from control node (Hedapena/) to remote ~/besu, excluding playbook/inventory.
+    - name: Deploy Hedapena files to ~/besu (exclude playbook and inventory)
+      ansible.posix.synchronize:
+        src: "{{ playbook_dir }}/"
+        dest: "{{ deploy_home }}/besu/"
+        rsync_opts:
+          - "--exclude=hedapena-AnsiblePlaybook.yml"
+          - "--exclude=inventory.yml"
+          - "--exclude=.git"
+
+    - name: Set ownership of besu directory to ansible_user
+      ansible.builtin.file:
+        path: "{{ deploy_home }}/besu"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: true
+
+    - name: Start Besu node with its docker-compose file
+      ansible.builtin.shell:
+        cmd: docker compose -f docker-compose{{ node_index }}.yml up -d
+        chdir: "{{ deploy_home }}/besu"
+      changed_when: true
