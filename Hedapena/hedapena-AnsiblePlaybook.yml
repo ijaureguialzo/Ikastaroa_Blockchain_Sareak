@@ -17,7 +17,7 @@
     - name: Cache SSH password for later plays
       ansible.builtin.set_fact:
         cached_ssh_password: "{{ ssh_password }}"
-      cacheable: true
+        cacheable: true
 
     # Install Docker and Compose v2 from Ubuntu repos (docker.io, docker-compose-v2).
     - name: Install Docker and Docker Compose v2
