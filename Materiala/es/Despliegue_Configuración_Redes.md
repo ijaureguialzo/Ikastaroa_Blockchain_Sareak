@@ -367,7 +367,7 @@ Para el despliegue vamos a utilizar la máquina denominada 'Ubuntu Desktop' sigu
 
 `cd Ikastaroa_Blockchain_Sareak`
 
-3.- Primero comprobamos la conectividad a las máquinas. Para ello con el primer comando añadimos sus claves a la lista de máquinas conocidas y con el segundo comando verificamos que Ansible tiene acceso a ellas:
+3.- Primero comprobamos la conectividad a las máquinas. Para ello con el primer comando añadimos sus claves a la lista de máquinas conocidas y con el segundo comando verificamos que Ansible tiene acceso a ellas (tenemos que recibir un SUCCESS por cada máquina):
 
 `ssh-keyscan -t ed25519 -H 192.168.100.1 192.168.100.2 192.168.100.3 192.168.100.4 >> ~/.ssh/known_hosts`
 
@@ -375,7 +375,7 @@ Para el despliegue vamos a utilizar la máquina denominada 'Ubuntu Desktop' sigu
 
 3.- Si la conectividad a los nodos va bien, ejecutamos un **Playbook de Ansible** para hacer el despliegue completo, introduciendo solamente la contraseña de acceso a las máquinas cuando nos lo pida:
 
-`ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml`
+`ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml --ask-become-pass`
 
 ---
 

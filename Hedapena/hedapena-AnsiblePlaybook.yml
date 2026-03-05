@@ -1,18 +1,12 @@
 # Hedapena Ansible Playbook: deploy Besu nodes and web server.
-# Run from repository root. Requires: sshpass on control node; ansible.posix collection
+# Run from repository root. Requires: ansible.posix collection
 #   (install with: ansible-galaxy collection install ansible.posix).
-# Example: ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml
+# SSH: use key-based auth (no password). Become (sudo) password is prompted via -K.
+# Example: ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml --ask-become-pass
 
-# Ask for SSH password once at start; same password is used for all servers.
 - name: Install Docker and Docker Compose on all servers
   hosts: all_servers
   become: true
-  vars_prompt:
-    - name: ssh_password
-      prompt: "SSH password for user isard (same for all servers)"
-      private: true
-  vars:
-    ansible_password: "{{ ssh_password }}"
   tasks:
     # Install Docker and Compose v2 from Ubuntu repos (docker.io, docker-compose-v2).
     - name: Install Docker and Docker Compose v2
@@ -39,7 +33,6 @@
   hosts: webserver
   become: true
   vars:
-    ansible_password: "{{ ssh_password }}"
     repo_root: "{{ playbook_dir }}/.."
   tasks:
     # Synchronize copies from control node (src) to remote host (dest).
@@ -70,8 +63,6 @@
 - name: Deploy Hedapena to Besu nodes and start each node
   hosts: besu_nodes
   become: true
-  vars:
-    ansible_password: "{{ ssh_password }}"
   tasks:
     # Synchronize copies from control node (Hedapena/) to remote ~/besu, excluding playbook/inventory.
     - name: Deploy Hedapena files to ~/besu (exclude playbook and inventory)
