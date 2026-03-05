@@ -35,6 +35,14 @@
   vars:
     repo_root: "{{ playbook_dir }}/.."
   tasks:
+    - name: Create besu directory in isard home
+      ansible.builtin.file:
+        path: "{{ deploy_home }}/besu"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
     # Synchronize copies from control node (src) to remote host (dest).
     - name: Deploy WebServer files to ~/besu/WebServer
       ansible.posix.synchronize:
@@ -64,6 +72,14 @@
   hosts: besu_nodes
   become: true
   tasks:
+    - name: Create besu directory in isard home
+      ansible.builtin.file:
+        path: "{{ deploy_home }}/besu"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
     # Synchronize copies from control node (Hedapena/) to remote ~/besu, excluding playbook/inventory.
     - name: Deploy Hedapena files to ~/besu (exclude playbook and inventory)
       ansible.posix.synchronize:
