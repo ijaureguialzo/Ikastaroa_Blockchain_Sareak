@@ -1,25 +1,24 @@
-# Hedapena Ansible Playbook: deploy Besu nodes and web server.
-# Run from repository root. Requires: sshpass (for SSH password).
-# You are prompted once for SSH password; use -K for become (sudo) password.
-# Example: ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml --ask-become-pass
+# Hedapena Ansible Playbook: desplegar Hyperledger Besu en los nodos y el servidor web.
+# Se solicita una vez la contraseña SSH para el usuario isard.
+# Comando para ejecutar: ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml --ask-become-pass
 
-- name: Install Docker and Docker Compose on all servers
+- name: Instalar Docker y Docker Compose en todas las máquinas
   hosts: all_servers
   become: true
   vars_prompt:
     - name: ssh_password
-      prompt: "SSH password for user isard (same for all servers)"
+      prompt: "Contraseña SSH para el usuario isard (la misma para todas las máquinas)"
       private: true
   vars:
     ansible_password: "{{ ssh_password }}"
   tasks:
-    # Cache SSH password so later plays (webserver, besu_nodes) can use it for ansible_password.
+    # Guardar la contraseña SSH para que en las siguientes tareas (webserver, besu_nodes) se pueda usar para ansible_password.
     - name: Cache SSH password for later plays
       ansible.builtin.set_fact:
         cached_ssh_password: "{{ ssh_password }}"
         cacheable: true
 
-    # Install Docker and Compose v2 from Ubuntu repos (docker.io, docker-compose-v2).
+    # Instalar Docker y Docker Compose v2 desde los repositorios de Ubuntu (docker.io, docker-compose-v2).
     - name: Install Docker and Docker Compose v2
       ansible.builtin.apt:
         name:
@@ -28,26 +27,26 @@
         state: present
         update_cache: true
 
-    - name: Ensure Docker service is started and enabled
+    - name: Asegurar que el servicio Docker está iniciado y habilitado
       ansible.builtin.service:
         name: docker
         state: started
         enabled: true
 
-    - name: Add user isard to docker group
+    - name: Añadir el usuario isard al grupo docker
       ansible.builtin.user:
         name: isard
         groups: docker
         append: true
 
-- name: Deploy web server (WebServer + Pilotoak) and start services
+- name: Desplegar el servidor web (WebServer + Pilotoak) e iniciar los servicios
   hosts: webserver
   become: true
   vars:
     ansible_password: "{{ cached_ssh_password }}"
     repo_root: "{{ playbook_dir }}/.."
   tasks:
-    - name: Create besu directory in isard home
+    - name: Crear la carpeta besu en el directorio home de isard
       ansible.builtin.file:
         path: "{{ deploy_home }}/besu"
         state: directory
@@ -55,20 +54,20 @@
         group: "{{ ansible_user }}"
         mode: "0755"
 
-    # Copy from control node to remote (uses Ansible connection, works with password auth).
+    # Copiar desde el nodo control a remoto (usa conexión Ansible, funciona con autenticación por contraseña).
     - name: Deploy WebServer files to ~/besu/WebServer
       ansible.builtin.copy:
         src: "{{ repo_root }}/Garapena/WebServer/"
         dest: "{{ deploy_home }}/besu/WebServer/"
         mode: preserve
 
-    - name: Deploy Pilotoak files to ~/besu/Pilotoak
+    - name: Desplegar los archivos de Pilotoak en ~/besu/Pilotoak
       ansible.builtin.copy:
         src: "{{ repo_root }}/Garapena/Pilotoak/"
         dest: "{{ deploy_home }}/besu/Pilotoak/"
         mode: preserve
 
-    - name: Set ownership of besu directory to ansible_user
+    - name: Asignar la propiedad de la carpeta besu al usuario ansible_user
       ansible.builtin.file:
         path: "{{ deploy_home }}/besu"
         state: directory
@@ -76,19 +75,19 @@
         group: "{{ ansible_user }}"
         recurse: true
 
-    - name: Start web server stack with docker compose
+    - name: Iniciar el stack del servidor web con docker compose
       ansible.builtin.shell:
         cmd: docker compose -f docker-compose.yml up -d
         chdir: "{{ deploy_home }}/besu/WebServer"
       changed_when: true
 
-- name: Deploy Hedapena to Besu nodes and start each node
+- name: Desplegar Hedapena en los nodos Besu e iniciar cada nodo
   hosts: besu_nodes
   become: true
   vars:
     ansible_password: "{{ cached_ssh_password }}"
   tasks:
-    - name: Create besu directory in isard home
+    - name: Crear la carpeta besu en el directorio home de isard
       ansible.builtin.file:
         path: "{{ deploy_home }}/besu"
         state: directory
@@ -96,14 +95,14 @@
         group: "{{ ansible_user }}"
         mode: "0755"
 
-    # Copy Hedapena directory to remote (includes all files; uses Ansible connection, works with password auth).
+    # Copiar la carpeta Hedapena a remoto (incluye todos los archivos; usa conexión Ansible, funciona con autenticación por contraseña).
     - name: Deploy Hedapena files to ~/besu
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/"
         dest: "{{ deploy_home }}/besu/"
         mode: preserve
 
-    - name: Set ownership of besu directory to ansible_user
+    - name: Asignar la propiedad de la carpeta besu al usuario isard
       ansible.builtin.file:
         path: "{{ deploy_home }}/besu"
         state: directory
@@ -111,7 +110,7 @@
         group: "{{ ansible_user }}"
         recurse: true
 
-    - name: Start Besu node with its docker-compose file
+    - name: Iniciar el nodo Besu con su fichero docker-compose
       ansible.builtin.shell:
         cmd: docker compose -f docker-compose{{ node_index }}.yml up -d
         chdir: "{{ deploy_home }}/besu"
