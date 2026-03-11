@@ -345,7 +345,7 @@ QBFT es un protocolo BFT (Byzantine Fault Tolerance) que implementa PoA (prueba 
   - Ejemplo: con 4 nodos, se tolera 1 fallo.
 - **Mensajería firmada:** Los nodos intercambian mensajes firmados digitalmente para garantizar integridad y autenticidad.
 
-**Liveness vs Safety:** QBFT prioriza la seguridad (consistencia) sobre la vivacidad. Si la red se particiona y no puede alcanzar quórum, se detiene en lugar de bifurcarse en cadenas divergentes.
+**Vivacidad vs Consistencia:** QBFT prioriza la seguridad (consistencia) sobre la vivacidad. Si la red se particiona y no puede alcanzar quórum, se detiene en lugar de bifurcarse en cadenas divergentes.
 
 ---
 
@@ -416,9 +416,10 @@ Podemos comprobar que la red está en marcha accediendo a la dirección `ethstat
     - Mediante Docker iniciar el servidor web y otros servicios definidos en el fichero WebServer/docker-compose.yml
 
    4.3. Desplegar Hyperledger Besu el los cuatro nodos: mediante la propiedad 'hosts: besu_nodes' se indica que las tareas asociadas se van a llevar a cabo solamente en las máquinas que pertenezcan al grupo besu_nodes. Las subtareas son:
-    - Crear la carpeta 'besu'.
-    - Copiar la carpeta actual (Hedapena) a 'besu' en destino.
-    - Asegurarse de que la carpeta 'besu' en destino y todas las subcarpetas pertenecen al usuario 'isard'.
+    - Crear la estructura de carpetas necesaria en ~/besuNode.
+    - Copiar los ficheros de Hedapena que son comunes a todos los nodos.
+    - Copiar los ficheros específicos de cada nodo (utilizando el índice).
+    - Asegurarse de que la carpeta 'besuNode' en destino y todas las subcarpetas pertenecen al usuario 'isard'.
     - Mediante Docker iniciar Besu en cada máquina. En este caso, como para cada máquina hay que desplegar un fichero distinto, se hace referencia al número en el nombre de fichero con el número de índice definido en `inventory.yml`.
 
 Como ejercicios se plantean:

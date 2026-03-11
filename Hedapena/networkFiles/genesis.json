@@ -17,15 +17,21 @@
   "mixHash" : "0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",
   "coinbase" : "0x0000000000000000000000000000000000000000",
   "alloc" : {
-    "0x432132e8561785c33afe931762cf8eeb9c80e3ad" : {
-      "balance" : "90000000000000000000000"
-    },
-    "0xcb88953e60948e3a76fa658d65b7c2d5043c6409" : {
-      "balance" : "90000000000000000000000"
-    },
-    "0xdd76406b124f9e3ae9fbeb47e4d8dc0ab143902d" : {
-      "balance" : "90000000000000000000000"
-    }
+    "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73" : {
+        "privateKey" : "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63",
+        "comment" : "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
+        "balance" : "90000000000000000000000"
+      },
+      "0x627306090abaB3A6e1400e9345bC60c78a8BEf57" : {
+        "privateKey" : "0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3",
+        "comment" : "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
+        "balance" : "0x130EE8E7179044400000"
+      },
+      "0xf17f52151EbEF6C7334FAD080c5704D77216b732" : {
+        "privateKey" : "0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f",
+        "comment" : "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
+        "balance" : "90000000000000000000000"
+      }
   },
   "extraData" : "0xf87aa00000000000000000000000000000000000000000000000000000000000000000f85494c6261c951d52b563d6a91afb774db1c2516caac494867e3dcc2e546ab8d62ab8b25e6800c328ca2dd89489b84b7fa93e429f2ce4632505074eed74e893519492c83b4052230b836e100c42701cdc83d7baeb8ac080c0"
 }

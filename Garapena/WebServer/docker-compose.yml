@@ -1,54 +1,60 @@
+# Versión del formato de archivo Compose
 version: '3'
 
 services:
   ethstats:
+    # Ruta al contexto de construcción de Docker para ethstats
     build: ./ethstats-server
+    # Define el nombre de host del contenedor como 'ethstats'
     hostname: ethstats
+    # Reinicia siempre el servicio a menos que se detenga explícitamente
     restart: always
+    # Establece la variable de entorno WS_SECRET necesaria para WebSocket
     environment:
       - WS_SECRET=asdf
+    # Mapea el puerto 3000 del contenedor al 3000 del host
     ports:
       - "3000:3000"
+    # Conecta el servicio a la red 'server_network'
     networks:
       - server_network
-    #volumes:
-      #- ethstats_logs:/app/alertak/logs
 
   esploratzaile:
+    # Directorio del contexto de construcción para la app Esploratzaile
     build:
       context: ../Pilotoak/EsploratzaileAPP
+      # Nombre del Dockerfile a usar
       dockerfile: Dockerfile
+    # Establece el nombre de host del contenedor como 'esploratzaile'
     hostname: esploratzaile
+    # Reinicia siempre el servicio a menos que se detenga explícitamente
     restart: always
+    # Conecta el servicio a la red 'server_network'
     networks:
       - server_network
   
   webserver:
+    # Utiliza la imagen oficial más reciente de NGINX
     image: nginx:latest
+    # Establece el nombre de host del contenedor como 'webserver'
     hostname: webserver
+    # Reinicia siempre el servicio a menos que se detenga explícitamente
     restart: always
+    # Mapea el puerto 80 del contenedor al 80 del host
     ports:
       - "80:80"
+      # Mapea el puerto 443 del contenedor al 443 del host
       - "443:443"
+    # Conecta el servicio a la red 'server_network'
     networks:
       - server_network
+    # Monta la carpeta local nginx de configuración al contenedor
     volumes:
       - ./nginx/:/etc/nginx/
-      - ./nginx/5xx.html:/www/error_pages/5xx.html
-      - ./nginx/default-page:/var/www/default:ro  # Mount default landing page (Read Only)
-      #- /etc/letsencrypt:/etc/letsencrypt:ro  # Mount SSL certs (Read Only)
-      #- /var/www/certbot:/var/www/certbot  # Mount the webroot for Certbot challenges
 
 networks:
   server_network:
+    # Nombra la red como 'server_network'
     name: server_network
+    # Usa el driver bridge para la red de Docker
     driver: bridge
-
-#volumes:
-  #db_data:
-  #ethstats_logs:
-  #formakuntza_ziurtagiriak:
-  #mail_data:
-  #mail_state:
-  #mail_logs:
-  #mail_config:

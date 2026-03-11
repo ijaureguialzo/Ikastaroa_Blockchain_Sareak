@@ -86,25 +86,70 @@
   become: true
   vars:
     ansible_password: "{{ cached_ssh_password }}"
+    hedapena_root: "{{ playbook_dir }}"
+    # Directorios mínimos esperados por el docker-compose y la configuración de Besu.
+    hedapena_directories:
+      - "{{ deploy_home }}/besuNode"
+      - "{{ deploy_home }}/besuNode/configNodes"
+      - "{{ deploy_home }}/besuNode/networkFiles"
+      - "{{ deploy_home }}/besuNode/networkFiles/keys"
+      - "{{ deploy_home }}/besuNode/networkFiles/JWTkeys"
+      - "{{ deploy_home }}/besuNode/networkFiles/TenantKeys"
+      - "{{ deploy_home }}/besuNode/Node"
+      - "{{ deploy_home }}/besuNode/Node/data"
+    # Ficheros comunes a todos los nodos validadores.
+    hedapena_common_files:
+      - src: "{{ hedapena_root }}/configNodes/node-config.toml"
+        dest: "{{ deploy_home }}/besuNode/configNodes/node-config.toml"
+      - src: "{{ hedapena_root }}/networkFiles/genesis.json"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/genesis.json"
+      - src: "{{ hedapena_root }}/networkFiles/static-nodes.json"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/static-nodes.json"
+      - src: "{{ hedapena_root }}/networkFiles/nodes_permissions_config.toml"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/nodes_permissions_config.toml"
+      - src: "{{ hedapena_root }}/networkFiles/JWTkeys/publicRSAKeyOperator.pem"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/JWTkeys/publicRSAKeyOperator.pem"
+    # Ficheros específicos del nodo, seleccionados mediante node_index desde inventory.yml.
+    hedapena_node_files:
+      - src: "{{ hedapena_root }}/docker-compose{{ node_index }}.yml"
+        dest: "{{ deploy_home }}/besuNode/docker-compose{{ node_index }}.yml"
+      - src: "{{ hedapena_root }}/networkFiles/keys/key{{ node_index }}"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/keys/key{{ node_index }}"
+      - src: "{{ hedapena_root }}/networkFiles/JWTkeys/JWT_{{ node_index }}"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/JWTkeys/JWT_{{ node_index }}"
+      - src: "{{ hedapena_root }}/networkFiles/TenantKeys/tenantKey{{ node_index }}.key"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/TenantKeys/tenantKey{{ node_index }}.key"
+      - src: "{{ hedapena_root }}/networkFiles/TenantKeys/tenantKey{{ node_index }}.pub"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/TenantKeys/tenantKey{{ node_index }}.pub"
   tasks:
-    - name: Crear la carpeta besu en el directorio home de isard
+    - name: Crear la estructura de carpetas necesaria en ~/besuNode
       ansible.builtin.file:
-        path: "{{ deploy_home }}/besu"
+        path: "{{ item }}"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0755"
+      loop: "{{ hedapena_directories }}"
 
-    # Copiar la carpeta Hedapena a remoto (incluye todos los archivos; usa conexión Ansible, funciona con autenticación por contraseña).
-    - name: Deploy Hedapena files to ~/besu
+    # Copiar solo la configuración compartida por todos los nodos.
+    - name: Copiar los ficheros comunes de Hedapena
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/"
-        dest: "{{ deploy_home }}/besu/"
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
         mode: preserve
+      loop: "{{ hedapena_common_files }}"
 
-    - name: Asignar la propiedad de la carpeta besu al usuario isard
+    # Copiar únicamente los ficheros propios del nodo actual según node_index.
+    - name: Copiar los ficheros específicos del nodo
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: preserve
+      loop: "{{ hedapena_node_files }}"
+
+    - name: Asignar la propiedad de la carpeta besuNode al usuario isard
       ansible.builtin.file:
-        path: "{{ deploy_home }}/besu"
+        path: "{{ deploy_home }}/besuNode"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
@@ -113,5 +158,5 @@
     - name: Iniciar el nodo Besu con su fichero docker-compose
       ansible.builtin.shell:
         cmd: docker compose -f docker-compose{{ node_index }}.yml up -d
-        chdir: "{{ deploy_home }}/besu"
+        chdir: "{{ deploy_home }}/besuNode"
       changed_when: true

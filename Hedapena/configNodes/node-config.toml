@@ -18,7 +18,7 @@ min-gas-price=0
 # Almacenamiento de datos
 # =============================================================================
 # Formato de almacenamiento: FOREST (necesario para privacidad) o BONSAI (por defecto en versiones recientes).
-data-storage-format="FOREST"
+data-storage-format="BONSAI"
 # Ruta del directorio donde Besu guarda la base de datos y el estado de la cadena.
 data-path="/var/lib/besu/QBFT-Network/Node/data"
 
@@ -150,4 +150,4 @@ tx-pool-limit-by-account-percentage=0.15
 # Límites de conexiones RPC
 # =============================================================================
 # Número máximo de conexiones HTTP JSON-RPC simultáneas. Por defecto 80.
-rpc-http-max-active-connections=300
+rpc-http-max-active-connections=80

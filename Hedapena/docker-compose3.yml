@@ -3,7 +3,7 @@ version: '3'
 services:
   besu-node3:
     # Imagen de Besu utilizada para el nodo
-    image: hyperledger/besu:24.10.0
+    image: hyperledger/besu:26.2.0
     # Nombre de host del contenedor
     hostname: besu_node3
     # Política de reinicio del contenedor
