@@ -11,7 +11,8 @@ services:
     # Volúmenes montados (directorio local en el contenedor)
     volumes:
       - .:/var/lib/besu/QBFT-Network
-      # Puertos expuestos y mapeados del host al contenedor
+    # Puertos expuestos y mapeados del host al contenedor
+    ports:
       # Puerto para la API JSON-RPC HTTP (por defecto 8545)
       - 8545:8545
       # Puerto para la API JSON-RPC WebSocket (por defecto 8546)
