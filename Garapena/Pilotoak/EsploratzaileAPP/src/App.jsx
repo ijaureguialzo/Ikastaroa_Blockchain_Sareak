@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { besuService } from './services/besuService';
 import Header from './components/Header/Header';
 import SearchBar from './components/SearchBar/SearchBar';
 import NetworkStats from './components/NetworkStats/NetworkStats';
 import BlockList from './components/BlockList/BlockList';
 import BlockDetail from './components/BlockDetail/BlockDetail';
-import NodesMap from './components/NodesMap';
 import { BESU_CONFIG, BESU_NODES } from '../config.js';
 import './styles/global.css';
 
@@ -312,18 +311,7 @@ function App() {
               handleLoadMore={handleLoadMore}
             />
           } />
-          <Route path="/mapa-nodos" element={
-            <>
-              <Header 
-                isConnected={isConnected} 
-                theme={theme}
-                toggleTheme={toggleTheme}
-                currentNode={currentNode}
-                onNodeChange={handleNodeChange}
-              />
-              <NodesMap />
-            </>
-          } />
+          <Route path="/mapa-nodos" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>

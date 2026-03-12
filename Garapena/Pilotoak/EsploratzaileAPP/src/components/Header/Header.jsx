@@ -31,12 +31,6 @@ const Header = ({ isConnected, theme, toggleTheme, currentNode, onNodeChange }) 
             >
               {t('navBlockExplorer')}
             </Link>
-            <Link
-              to="/mapa-nodos"
-              className={`header-nav-link ${location.pathname === '/mapa-nodos' ? 'active' : ''}`}
-            >
-              {t('navNodesMap')}
-            </Link>
           </nav>
         </div>
 
