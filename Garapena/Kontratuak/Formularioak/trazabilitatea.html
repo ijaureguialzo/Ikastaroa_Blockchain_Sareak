@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formularioak - Trazabilitatea</title>
+    <!-- Cargar la libreria ethers.js v6 desde el CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .status-message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .status-info {
+            background-color: #e7f3ff;
+            color: #004085;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .input-section {
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .event-created {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .event-updated {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .tx-hash {
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .no-events {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Formularioak - Trazabilitatea</h1>
+        
+        <!-- Seccion de estado de conexion -->
+        <div class="status-section">
+            <h2>Estado de la conexion</h2>
+            <div id="connectionStatus">
+                <div class="status-message status-info">Conectando con el proveedor Web3...</div>
+            </div>
+        </div>
+
+        <!-- Seccion de entrada -->
+        <div class="input-section">
+            <h2>Recuperar historial del formulario</h2>
+            <div class="input-group">
+                <label for="contractAddress">Direccion del contrato:</label>
+                <input type="text" id="contractAddress" placeholder="0x..." />
+            </div>
+            <div class="input-group">
+                <label for="formNumber">Numero de formulario (zenbakia):</label>
+                <input type="number" id="formNumber" placeholder="Introduce el numero de formulario" min="1" />
+            </div>
+            <button id="retrieveButton" onclick="retrieveEvents()" disabled>Recuperar eventos</button>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div class="table-container" id="resultsContainer" style="display: none;">
+            <h2>Historial del formulario</h2>
+            <table id="eventsTable">
+                <thead>
+                    <tr>
+                        <th>Tipo de evento</th>
+                        <th>Numero de bloque</th>
+                        <th>Hash de transaccion</th>
+                        <th>datu1</th>
+                        <th>datu2</th>
+                        <th>Marca temporal</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Lista fija de IP tomada de hedatu_erabili.py
+        const IP_LIST = ["192.168.100.1","192.168.100.2","192.168.100.3","192.168.100.4"];
+        const PORT = 8545;
+        
+        let provider = null;
+        let contract = null;
+        const CONTRACT_ABI = [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "zenbakia",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "datu1",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "datu2",
+                        "type": "string"
+                    }
+                ],
+                "name": "FormCreated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "zenbakia",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "datu1",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "datu2",
+                        "type": "string"
+                    }
+                ],
+                "name": "FormUpdated",
+                "type": "event"
+            }
+        ];
+
+        // Funcion para actualizar el estado de conexion mostrado
+        function updateConnectionStatus(message, type) {
+            const statusDiv = document.getElementById('connectionStatus');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status-message status-${type}`;
+            messageDiv.textContent = message;
+            statusDiv.appendChild(messageDiv);
+        }
+
+        // Funcion para intentar la conexion con proveedores Web3
+        async function connectToProvider() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<div class="status-message status-info">Conectando con el proveedor Web3...</div>';
+            
+            for (const ip of IP_LIST) {
+                const providerUrl = `http://${ip}:${PORT}`;
+                updateConnectionStatus(`Intentando conectar con ${providerUrl}...`, 'info');
+                
+                try {
+                    // Crear una nueva instancia del proveedor (sintaxis de ethers v6)
+                    const testProvider = new ethers.JsonRpcProvider(providerUrl);
+                    
+                    // Probar la conexion obteniendo el numero de bloque
+                    const blockNumber = await testProvider.getBlockNumber();
+                    
+                    // Si tiene exito, establecer el proveedor
+                    provider = testProvider;
+                    updateConnectionStatus(`Conexion establecida correctamente con ${providerUrl} (Bloque: ${blockNumber})`, 'success');
+                    document.getElementById('retrieveButton').disabled = false;
+                    return;
+                } catch (error) {
+                    updateConnectionStatus(`Fallo la conexion con ${providerUrl}: ${error.message}`, 'error');
+                }
+            }
+            
+            updateConnectionStatus('No se pudo conectar con ningun proveedor de la lista de IP', 'error');
+        }
+
+        // Funcion para encontrar el bloque de despliegue del contrato mediante busqueda binaria
+        async function findDeploymentBlock(contractAddress, latestBlock) {
+            // Comprobar si el contrato existe en el ultimo bloque
+            const codeAtLatest = await provider.getCode(contractAddress, latestBlock);
+            if (!codeAtLatest || codeAtLatest === '0x') {
+                throw new Error('El contrato no existe en el ultimo bloque');
+            }
+            
+            // Busqueda binaria para encontrar el bloque de despliegue
+            let low = 0;
+            let high = latestBlock;
+            let deploymentBlock = latestBlock;
+            
+            // Actualizar la interfaz durante la busqueda
+            const tableBody = document.getElementById('eventsTableBody');
+            
+            while (low <= high) {
+                const mid = Math.floor((low + high) / 2);
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Buscando el bloque de despliegue... comprobando el bloque ${mid}</td></tr>`;
+                
+                const codeAtMid = await provider.getCode(contractAddress, mid);
+                
+                if (codeAtMid && codeAtMid !== '0x') {
+                    // El contrato existe en este bloque, buscar antes
+                    deploymentBlock = mid;
+                    high = mid - 1;
+                } else {
+                    // El contrato no existe en este bloque, buscar despues
+                    low = mid + 1;
+                }
+            }
+            
+            return deploymentBlock;
+        }
+
+        // Funcion para encontrar el primer evento FormCreated (optimizacion: detenerse al encontrarlo)
+        async function findFirstFormCreatedEvent(contract, formCreatedFilter, fromBlock, toBlock) {
+            // Probar primero con una consulta directa
+            try {
+                const events = await contract.queryFilter(formCreatedFilter, fromBlock, toBlock);
+                // Devolver el primer evento si se encuentra, o null si no existe
+                return events.length > 0 ? events[0] : null;
+            } catch (error) {
+                // Si hay un error de limite de rango, usar lotes y detenerse tras el primer resultado
+                if (error.message && (error.message.includes('range limit') || error.message.includes('exceeds maximum'))) {
+                    let batchSize = 10000;
+                    let currentFrom = fromBlock;
+                    
+                    while (currentFrom <= toBlock) {
+                        const currentTo = Math.min(currentFrom + batchSize - 1, toBlock);
+                        const tableBody = document.getElementById('eventsTableBody');
+                        const progress = Math.min(100, Math.round(((currentTo - fromBlock) / (toBlock - fromBlock)) * 100));
+                        tableBody.innerHTML = `<tr><td colspan="6" class="loading">Buscando la creacion del formulario... ${progress}% (bloques ${currentFrom}-${currentTo})</td></tr>`;
+                        
+                        try {
+                            const batchEvents = await contract.queryFilter(formCreatedFilter, currentFrom, currentTo);
+                            if (batchEvents.length > 0) {
+                                // Encontrado: devolver el primer evento
+                                return batchEvents[0];
+                            }
+                            currentFrom = currentTo + 1;
+                        } catch (batchError) {
+                            // Si el lote es demasiado grande, reducirlo y reintentar el mismo lote
+                            if (batchError.message && (batchError.message.includes('range limit') || batchError.message.includes('exceeds maximum'))) {
+                                if (batchSize > 1000) {
+                                    // Reducir el tamano del lote y reintentar el mismo rango
+                                    batchSize = Math.floor(batchSize / 2);
+                                    continue; // No avanzar currentFrom; reintentar con un lote menor
+                                } else {
+                                    throw new Error(`El limite de rango del RPC es demasiado restrictivo. Se intento con un lote de ${batchSize} bloques.`);
+                                }
+                            }
+                            throw batchError;
+                        }
+                    }
+                    return null; // No encontrado
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Funcion para consultar eventos por lotes y evitar el limite de rango del RPC
+        async function queryEventsInBatches(contract, filter, fromBlock, toBlock, batchSize = 10000) {
+            const allEvents = [];
+            let currentFrom = fromBlock;
+            
+            // Consultar eventos por lotes
+            while (currentFrom <= toBlock) {
+                const currentTo = Math.min(currentFrom + batchSize - 1, toBlock);
+                
+                try {
+                    // Consultar eventos de este lote
+                    const batchEvents = await contract.queryFilter(filter, currentFrom, currentTo);
+                    allEvents.push(...batchEvents);
+                    
+                    // Actualizar el progreso en la interfaz
+                    const tableBody = document.getElementById('eventsTableBody');
+                    const progress = Math.min(100, Math.round(((currentTo - fromBlock) / (toBlock - fromBlock)) * 100));
+                    tableBody.innerHTML = `<tr><td colspan="6" class="loading">Recuperando eventos... ${progress}% (bloques ${currentFrom}-${currentTo} de ${toBlock})</td></tr>`;
+                    
+                    // Pasar al siguiente lote
+                    currentFrom = currentTo + 1;
+                } catch (error) {
+                    // Si el lote es demasiado grande, probar con lotes mas pequenos
+                    if (error.message && error.message.includes('range limit')) {
+                        if (batchSize > 1000) {
+                            // Reducir el tamano del lote y reintentar
+                            batchSize = Math.floor(batchSize / 2);
+                            continue;
+                        } else {
+                            throw new Error(`El limite de rango del RPC es demasiado restrictivo. Se intento con un lote de ${batchSize} bloques.`);
+                        }
+                    }
+                    throw error;
+                }
+            }
+            
+            return allEvents;
+        }
+
+        // Funcion para recuperar y mostrar eventos
+        async function retrieveEvents() {
+            const contractAddress = document.getElementById('contractAddress').value.trim();
+            const formNumber = document.getElementById('formNumber').value;
+            
+            // Validar las entradas
+            if (!contractAddress) {
+                alert('Introduce una direccion de contrato');
+                return;
+            }
+            
+            if (!formNumber || formNumber <= 0) {
+                alert('Introduce un numero de formulario valido (mayor que 0)');
+                return;
+            }
+            
+            if (!provider) {
+                alert('No hay conexion con un proveedor Web3. Espera a que se complete la conexion.');
+                return;
+            }
+            
+            // Desactivar el boton durante la recuperacion
+            const button = document.getElementById('retrieveButton');
+            button.disabled = true;
+            button.textContent = 'Recuperando...';
+            
+            // Mostrar el estado de carga
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.style.display = 'block';
+            const tableBody = document.getElementById('eventsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="loading">Recuperando eventos...</td></tr>';
+            
+            try {
+                // Crear la instancia del contrato
+                contract = new ethers.Contract(contractAddress, CONTRACT_ABI, provider);
+                
+                // Obtener el ultimo numero de bloque
+                const latestBlock = await provider.getBlockNumber();
+                
+                // Encontrar el bloque de despliegue del contrato para optimizar la busqueda
+                tableBody.innerHTML = '<tr><td colspan="6" class="loading">Buscando el bloque de despliegue del contrato...</td></tr>';
+                const deploymentBlock = await findDeploymentBlock(contractAddress, latestBlock);
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading">Contrato desplegado en el bloque ${deploymentBlock}. Consultando eventos desde el bloque ${deploymentBlock}...</td></tr>`;
+                
+                // Crear filtros para los eventos
+                const formCreatedFilter = contract.filters.FormCreated(parseInt(formNumber));
+                const formUpdatedFilter = contract.filters.FormUpdated(parseInt(formNumber));
+                
+                // Optimizacion: encontrar el primer evento FormCreated (solo existe uno por formulario)
+                tableBody.innerHTML = '<tr><td colspan="6" class="loading">Buscando el evento de creacion del formulario...</td></tr>';
+                const firstFormCreatedEvent = await findFirstFormCreatedEvent(contract, formCreatedFilter, deploymentBlock, latestBlock);
+                
+                if (!firstFormCreatedEvent) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="no-events">Formulario no encontrado. No existe ningun evento FormCreated para este numero de formulario.</td></tr>';
+                    button.disabled = false;
+                    button.textContent = 'Recuperar eventos';
+                    return;
+                }
+                
+                // Usar el bloque de FormCreated como punto inicial para buscar FormUpdated
+                // (las actualizaciones solo pueden ocurrir despues de la creacion)
+                const creationBlock = firstFormCreatedEvent.blockNumber;
+                const formCreatedEvents = [firstFormCreatedEvent];
+                
+                // Buscar ahora los eventos FormUpdated a partir del bloque de creacion
+                tableBody.innerHTML = '<tr><td colspan="6" class="loading">Consultando eventos FormUpdated (desde el bloque de creacion)...</td></tr>';
+                let formUpdatedEvents;
+                try {
+                    formUpdatedEvents = await contract.queryFilter(formUpdatedFilter, creationBlock, latestBlock);
+                } catch (error) {
+                    // Si la consulta directa falla por el limite de rango, usar lotes como alternativa
+                    if (error.message && (error.message.includes('range limit') || error.message.includes('exceeds maximum'))) {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="loading">Rango demasiado grande, consultando actualizaciones por lotes...</td></tr>';
+                        formUpdatedEvents = await queryEventsInBatches(contract, formUpdatedFilter, creationBlock, latestBlock);
+                    } else {
+                        // Relanzar otros errores
+                        throw error;
+                    }
+                }
+                
+                // Combinar y procesar los eventos
+                const allEvents = [];
+                
+                // Recoger todos los numeros de bloque unicos para obtener sus marcas temporales de forma eficiente
+                const blockNumbers = new Set();
+                formCreatedEvents.forEach(event => blockNumbers.add(event.blockNumber));
+                formUpdatedEvents.forEach(event => blockNumbers.add(event.blockNumber));
+                
+                // Obtener en paralelo las marcas temporales de todos los bloques
+                tableBody.innerHTML = '<tr><td colspan="6" class="loading">Obteniendo las marcas temporales de los bloques...</td></tr>';
+                const blockPromises = Array.from(blockNumbers).map(blockNum => 
+                    provider.getBlock(blockNum).then(block => [blockNum, block.timestamp])
+                );
+                const blockData = await Promise.all(blockPromises);
+                const blockTimestampMap = new Map(blockData);
+                
+                // Procesar los eventos FormCreated
+                for (const event of formCreatedEvents) {
+                    allEvents.push({
+                        type: 'FormCreated',
+                        blockNumber: event.blockNumber,
+                        transactionHash: event.transactionHash,
+                        datu1: event.args.datu1,
+                        datu2: event.args.datu2,
+                        timestamp: blockTimestampMap.get(event.blockNumber)
+                    });
+                }
+                
+                // Procesar los eventos FormUpdated
+                for (const event of formUpdatedEvents) {
+                    allEvents.push({
+                        type: 'FormUpdated',
+                        blockNumber: event.blockNumber,
+                        transactionHash: event.transactionHash,
+                        datu1: event.args.datu1,
+                        datu2: event.args.datu2,
+                        timestamp: blockTimestampMap.get(event.blockNumber)
+                    });
+                }
+                
+                // Ordenar los eventos por numero de bloque (cronologicamente)
+                allEvents.sort((a, b) => a.blockNumber - b.blockNumber);
+                
+                // Mostrar los eventos en la tabla
+                displayEvents(allEvents);
+                
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="status-error">Error al recuperar los eventos: ${error.message}</td></tr>`;
+                console.error('Error al recuperar los eventos:', error);
+            } finally {
+                // Volver a activar el boton
+                button.disabled = false;
+                button.textContent = 'Recuperar eventos';
+            }
+        }
+
+        // Funcion para mostrar los eventos en la tabla
+        function displayEvents(events) {
+            const tableBody = document.getElementById('eventsTableBody');
+            
+            if (events.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="no-events">No se encontraron eventos para este numero de formulario</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            
+            events.forEach(event => {
+                const row = document.createElement('tr');
+                
+                // Celda del tipo de evento con estilo
+                const typeCell = document.createElement('td');
+                typeCell.className = event.type === 'FormCreated' ? 'event-created' : 'event-updated';
+                typeCell.textContent = event.type === 'FormCreated' ? 'Formulario creado' : 'Formulario actualizado';
+                
+                // Celda del numero de bloque
+                const blockCell = document.createElement('td');
+                blockCell.textContent = event.blockNumber;
+                
+                // Celda del hash de transaccion
+                const txCell = document.createElement('td');
+                txCell.className = 'tx-hash';
+                txCell.textContent = event.transactionHash;
+                
+                // Celda de datu1
+                const datu1Cell = document.createElement('td');
+                datu1Cell.textContent = event.datu1;
+                
+                // Celda de datu2
+                const datu2Cell = document.createElement('td');
+                datu2Cell.textContent = event.datu2;
+                
+                // Celda de la marca temporal
+                const timestampCell = document.createElement('td');
+                if (event.timestamp) {
+                    const date = new Date(event.timestamp * 1000);
+                    timestampCell.textContent = date.toLocaleString();
+                } else {
+                    timestampCell.textContent = 'No disponible';
+                }
+                
+                // Anadir las celdas a la fila
+                row.appendChild(typeCell);
+                row.appendChild(blockCell);
+                row.appendChild(txCell);
+                row.appendChild(datu1Cell);
+                row.appendChild(datu2Cell);
+                row.appendChild(timestampCell);
+                
+                // Anadir la fila a la tabla
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Inicializar la conexion al cargar la pagina
+        window.addEventListener('load', () => {
+            connectToProvider();
+        });
+
+        // Permitir que la tecla Enter lance la recuperacion
+        document.getElementById('formNumber').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                retrieveEvents();
+            }
+        });
+        
+        document.getElementById('contractAddress').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                retrieveEvents();
+            }
+        });
+    </script>
+</body>
+</html>
+
