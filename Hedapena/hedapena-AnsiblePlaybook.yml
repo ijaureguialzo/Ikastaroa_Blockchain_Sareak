@@ -66,6 +66,12 @@
         src: "{{ repo_root }}/Garapena/Pilotoak/"
         dest: "{{ deploy_home }}/besu/Pilotoak/"
         mode: preserve
+        
+    - name: Desplegar la carpeta Kontratuak en ~/besu/Kontratuak
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/Garapena/Kontratuak/"
+        dest: "{{ deploy_home }}/besu/Kontratuak/"
+        mode: preserve
 
     - name: Asignar la propiedad de la carpeta besu al usuario ansible_user
       ansible.builtin.file:
