@@ -351,13 +351,13 @@ QBFT es un protocolo BFT (Byzantine Fault Tolerance) que implementa PoA (prueba 
 
 # Parte 3: Despliegue de una red Blockchain preconfigurada
 
-Vamos a desplegar una red blockchain Hyperledger Besu **preconfigurada** en 4 máquinas virtuales (Ubuntu Server) que pueden comunicarse entre sí y analizaremos su funcionamiento. Tendremos una quinta máquina (Ubuntu Desktop) que hará de máquina de despliegue y servidor web con aplicaciones para monitorizar o hacer uso de la red.
+Vamos a desplegar una red blockchain Hyperledger Besu **preconfigurada** en 4 máquinas virtuales (Ubuntu Server) que pueden comunicarse entre sí y analizaremos su funcionamiento. Tendremos una quinta máquina (Ubuntu Desktop) que hará de máquina de despliegue y servidor web con aplicaciones para monitorizar o hacer uso de la red. Por simplicidad y comodidad de interfaz solamente vamos a trabajar desde Ubuntu Desktop, conectándonos a las demás máquinas desde esa si hiciera falta.
 
 Todo el código fuente se encuentra en https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak
 
 Las máquinas están desplegadas para cada usuario en https://vdi.tknika.eus/login
 
-Las cuatro máquinas virtuales denominadas 'Besu nodo 1-4' son máquinas Ubuntu Server donde lo único que se ha configurado es la dirección IP fija y el nombre del servidor. Lo que necesitemos instalar para la puesta en marcha de los nodos de la red blockchain se hará en el despliegue mediante **Ansible**.
+Las cuatro máquinas virtuales denominadas 'Besu nodo 1-5' son máquinas Ubuntu Server donde lo único que se ha configurado es la dirección IP fija y el nombre del servidor. Lo que necesitemos instalar para la puesta en marcha de los nodos de la red blockchain se hará en el despliegue mediante **Ansible**.
 
 La máquina virtual denominada 'Ubuntu Desktop' es un Ubuntu de escritorio donde lo único que se ha configurado es la dirección IP fija y se ha instalado Ansible para hacer el despliegue. Parte del despliegue se hace en la misma máquina, que actúa como servidor web para aplicaciones que hacen uso de la blockchain.
 
@@ -383,11 +383,13 @@ Para el despliegue vamos a utilizar la máquina denominada 'Ubuntu Desktop' sigu
 
 `ansible-playbook -i Hedapena/inventory.yml Hedapena/hedapena-AnsiblePlaybook.yml --ask-become-pass`
 
-Si todo ha ido bien al final de la tarea obtendremos un mensaje parecido a éste:
+Tardará un tiempo en hacer todo el despliegue. Si todo ha ido bien al final de la tarea obtendremos un mensaje parecido a éste:
 
 ![Ansible OK](../baliabideak/ansible_ok.jpg)
 
-Podemos comprobar que la red está en marcha accediendo a la dirección `ethstats.localhost` en el navegador del Ubuntu Desktop. Veremos algo así:
+Si algo ha fallado tendríamos que mirar el error pero no hay problema en volver a ejecutar el comando, Ansible se saltará las tareas que ya haya realizado bien.
+
+Podemos comprobar que la red está en marcha accediendo a la dirección `localhost` o `ethstats.localhost` en el navegador del Ubuntu Desktop. Veremos algo así:
 
 ![Ethstats](../baliabideak/ethstats.jpg)
 
@@ -424,21 +426,38 @@ Podemos comprobar que la red está en marcha accediendo a la dirección `ethstat
 
 Como ejercicios se plantean:
 
-1. Seguir todos los pasos descritos para desplegar la red blockchain preconfigurada.
-2. Acceder a uno de los nodos (mediante ssh desde el Ubuntu Desktop para mayor comodidad) y echar abajo el servicio manualmente para observar que la red sigue creando bloques.
-    * Ejecuta `ssh isard@192.168.100.1` y dentro de la carpeta besu `docker compose -f docker-compose1.yml down`
-    * Observa Ethstats en el navegador.
-3. Acceder a otro de los nodos y echar abajo el servicio para observar que la red ya no produce más bloques.
-    * Ejecuta `ssh isard@192.168.100.2` y dentro de la carpeta besu `docker compose -f docker-compose2.yml down`
-    * Observa Ethstats en el navegador.
-4. Reactivar el servicio en los dos nodos para ver que la red ha retomado la creación de bloques (puede tardar un tiempo en retomar la creación de nuevos bloques, unos 5 minutos en este entorno).
-    * Ejecuta `ssh isard@192.168.100.1` y dentro de la carpeta besu `docker compose -f docker-compose1.yml up -d`
-    * Ejecuta `ssh isard@192.168.100.2` y dentro de la carpeta besu `docker compose -f docker-compose2.yml up -d`
-    * Observa Ethstats en el navegador.
+1. Sigue todos los pasos descritos para desplegar la red blockchain preconfigurada. Entrega una captura del Ethstats con todos los nodos en marcha y generando bloques.
 
-Para cada apartado, entrega una captura del Ethstats sacada de forma consecutiva, donde se observe el estado descrito.
+2. Accede a uno de los nodos (mediante ssh desde el Ubuntu Desktop para mayor comodidad) y echar abajo el servicio manualmente para observar que la red sigue creando bloques.
+    * Ejecuta `ssh isard@192.168.100.1` y dentro de la carpeta besuNode `docker compose -f docker-compose1.yml down`
+    * Sal de la conexión al servidor con `exit`.
+    * Observa Ethstats en el navegador.
+    * Entrega una captura del Ethstats con 3 nodos en marcha pero creando bloques ('Last block' con menos de 10 segundos).
 
-**Desplegar un contratro de prueba?**
+3. Accede a otro de los nodos y echa abajo el servicio para observar que la red ya no produce más bloques.
+    * Ejecuta `ssh isard@192.168.100.2` y dentro de la carpeta besuNode `docker compose -f docker-compose2.yml down`
+    * Sal de la conexión al servidor con `exit`.
+    * Observa Ethstats en el navegador.
+    * Entrega una captura del Ethstats con 2 nodos en marcha y sin crear nuevos bloques ('Last block' con más de 10 segundos).
+
+4. Reactiva el servicio en los dos nodos para ver que la red ha retomado la creación de bloques (puede tardar un tiempo en retomar la creación de nuevos bloques, unos 5 minutos en este entorno).
+    * Ejecuta `ssh isard@192.168.100.1` y dentro de la carpeta besuNode `docker compose -f docker-compose1.yml up -d`
+    * Sal de la conexión al servidor con `exit`.
+    * Ejecuta `ssh isard@192.168.100.2` y dentro de la carpeta besuNode `docker compose -f docker-compose2.yml up -d`
+    * Sal de la conexión al servidor con `exit`.
+    * Observa Ethstats en el navegador.
+    * Entrega una captura del Ethstats con todos los nodos en marcha y generando bloques (el número de bloque tendrá que ser mayor que el de la captura del apartado anterior y 'Last block' con menos de 10 segundos).
+
+5. Despliega un Smart Contract. Para comprobar que nuestra red ya está operativa y se pueden hacer transacciones, vamos a ejecutar un script que despliega e invoca un contrato ya compilado:
+    * Ve a la carpeta de contratos con `cd ~/besu/Kontratuak/Formularioak`.
+    * Ejecuta `python ./hedatu_erabili.py`.
+    * Identifica en los mensajes la dirección donde se ha desplegado el contrato y cópialo del terminal (Ctrl. + Mayúsc. + C).
+    * Abre con el navegador el fichero `trazabilitatea.html` que se encuentra en la misma carpeta e introduce la dirección del contrato. El número de formulario es 1.
+    * Entrega una captura de la página web donde se vea que se ha recuperado los datos del formulario para ese contrato.
+
+6.- Utiliza un explorador de bloques e identifica dónde están los datos de una transacción. La útima transacción del ejercicio anterior actualiza el formulario 1 con la información 'Dato final 1' y 'Dato final 2'. Se puede ver en qué número de bloque ha ocurrido esa transacción.
+    * Accede en el navegador a `esploratzaile.localhost` y busca el número de bloque donde ha ocurrido esa transacción.
+    *Entrega una captura con los datos de ese bloque. Tienen que aparecer 'Dato final 1' y 'Dato final 2'.
 
 En la próxima sección estudiaremos dónde se han configurado los distintos aspectos de la red blockchain desplegada.
 
