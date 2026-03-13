@@ -15,7 +15,6 @@ Se puede saltar al apartado 3 si se quiere probar la configuración por defecto 
 
 ### Máquina en la que va a desplegar Besu:
 - Ubuntu Server actualizado.
-- [OpenSSH](https://ubuntu.com/server/docs/openssh-server)
 
 ## 2.- Configuración inicial
 

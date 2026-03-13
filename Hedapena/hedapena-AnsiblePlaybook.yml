@@ -66,7 +66,7 @@
         src: "{{ repo_root }}/Garapena/Pilotoak/"
         dest: "{{ deploy_home }}/besu/Pilotoak/"
         mode: preserve
-        
+
     - name: Desplegar la carpeta Kontratuak en ~/besu/Kontratuak
       ansible.builtin.copy:
         src: "{{ repo_root }}/Garapena/Kontratuak/"
@@ -87,7 +87,7 @@
         chdir: "{{ deploy_home }}/besu/WebServer"
       changed_when: true
 
-- name: Desplegar Hedapena en los nodos Besu e iniciar cada nodo
+- name: Desplegar los ficheros de configuración de Besu en los nodos Besu e iniciar cada nodo
   hosts: besu_nodes
   become: true
   vars:
@@ -140,20 +140,22 @@
       loop: "{{ hedapena_directories }}"
 
     # Copiar solo la configuración compartida por todos los nodos.
-    - name: Copiar los ficheros comunes de Hedapena
+    - name: Copiar los ficheros comunes a todos los nodos
       ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
         mode: preserve
       loop: "{{ hedapena_common_files }}"
+      notify: Recrear nodo Besu
 
     # Copiar únicamente los ficheros propios del nodo actual según node_index.
-    - name: Copiar los ficheros específicos del nodo
+    - name: Copiar los ficheros específicos de cada nodo
       ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
         mode: preserve
       loop: "{{ hedapena_node_files }}"
+      notify: Recrear nodo Besu
 
     - name: Asignar la propiedad de la carpeta besuNode al usuario isard
       ansible.builtin.file:
@@ -168,3 +170,10 @@
         cmd: docker compose -f docker-compose{{ node_index }}.yml up -d
         chdir: "{{ deploy_home }}/besuNode"
       changed_when: true
+
+  # Handlers: se ejecutan al final del play solo si alguna tarea los notificó por haber cambiado.
+  handlers:
+    - name: Recrear nodo Besu
+      ansible.builtin.shell:
+        cmd: docker compose -f docker-compose{{ node_index }}.yml up -d --force-recreate
+        chdir: "{{ deploy_home }}/besuNode"

@@ -465,29 +465,7 @@ En la próxima sección estudiaremos dónde se han configurado los distintos asp
 
 # Parte 4: Configuración de redes Blockchain
 
-En nuestro caso estamos desplegando una red Hyperledger Besu en cuatro nodos. Como se ha visto en el apartado anterior, el despliegue en cada nodo consiste en iniciar un servicio Docker definido en cada fichero **docker-composeX.yml**.
-
-En el fichero [docker-composeX.yml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/docker-compose1.yml) se define la imagen Docker que se va a desplegar en el nodo (en los comentarios se describe lo que hace cada línea de configuración) y sus características.
-
-Partiendo de este fichero veamos su relación con los demás ficheros fundamentales de la configuración:
-
-- **[node-config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/configNodes/node-config.toml)**: el fichero de configuración que define las características del nodo. El significado de cada parámetro viene brevemente explicado en un comentario. Es el núcleo de la configuración de cada nodo y como vemos en él se hace referencia a los siguientes ficheros:
-  - **genesis.json**: fichero que define el bloque inicial y la configuración de la cadena.
-  - **publicRSAKeyOperator.pem**: clave pública usada para verificar los tokens de acceso JWT.
-  - **static-nodes.json**: fichero con la lista de nodos conocidos con los que conectarse al arrancar.
-  - **nodes_permissions_config.toml**: fichero con las direcciones de los nodos permitidos en la red.
-  - **accounts_permissions_config.toml**: fichero con las cuentas que tienen permiso para enviar transacciones a la red (desactivado por defecto en nuestro caso).
-
-- **networkFiles/keys/keyX**: clave privada de cada nodo que lo identifica de forma única.
-
-Para cada nodo los ficheros están estructurados en la carpeta de despliegue (besu) de esta manera:
-
-![Tree](../baliabideak/tree.jpg)
-
-
-## 4.1 Creación de ficheros con herramientas de Besu:
-
-### Software necesario en la máquina que va a configurar y desplegar.
+## 4.1 Software necesario en las máquinas.
 
 La máquina Ubuntu Desktop con la que estamos trabajando ya trae instalado lo siguiente:
 
@@ -496,7 +474,32 @@ La máquina Ubuntu Desktop con la que estamos trabajando ya trae instalado lo si
 - Hyperledger Besu 26.2.0 (el software con las herramientas, no un nodo)
 - Node.js 24.14
 
-### Generación de nuevas direcciones
+Las máquinas Ubuntu Server (Besu node 1-5) no traen nada instalado.
+
+## 4.2 Estructura de los ficheros de configuración en los nodos Besu:
+
+En nuestro caso estamos desplegando una red Hyperledger Besu en cuatro nodos. Como se ha visto en el apartado anterior, el despliegue en cada nodo consiste en iniciar un servicio Docker definido en cada fichero **docker-composeX.yml**.
+
+En el fichero [docker-composeX.yml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/docker-compose1.yml) se define la imagen Docker que se va a desplegar en el nodo (en los comentarios se describe lo que hace cada línea de configuración) y sus características. **Echa un vistazo al enlace proporcionado para entender lo que viene configurado**.
+
+Partiendo de este fichero veamos su relación con los demás ficheros fundamentales de la configuración:
+
+- **[node-config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/configNodes/node-config.toml)**: el fichero de configuración que define las características del nodo. El significado de cada parámetro viene brevemente explicado en un comentario, **accede al enlace proporcionado para verlo**. Es el núcleo de la configuración de cada nodo y como vemos en él se hace referencia a los siguientes ficheros:
+  - **[genesis.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/genesis.json)**: fichero que define el bloque inicial y la configuración de la cadena.
+  - **publicRSAKeyOperator.pem**: clave pública usada para verificar los tokens de acceso JWT.
+  - **[static-nodes.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/static-nodes.json)**: fichero con la lista de nodos conocidos con los que conectarse al arrancar.
+  - **[nodes_permissions_config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/nodes_permissions_config.toml)**: fichero con las direcciones de los nodos permitidos en la red.
+  - **[accounts_permissions_config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/accounts_permissions_config.toml)**: fichero con las cuentas que tienen permiso para enviar transacciones a la red (desactivado por defecto en nuestro caso).
+
+- **networkFiles/keys/keyX**: clave privada de cada nodo que lo identifica de forma única.
+
+Para cada nodo los ficheros están estructurados en la carpeta de despliegue (besu) de esta manera:
+
+![Tree](../baliabideak/tree.jpg)
+
+## 4.3 Creación de ficheros con herramientas de Besu:
+
+### Generar nuevas direcciones
 
 Las direcciones en blockchain funcionan de forma similar a un número de cuenta bancaria, pero en redes como Ethereum o Besu. Una dirección identifica de manera única a un usuario, contrato u entidad dentro de la red: es una cadena de caracteres generada a partir de una clave pública, que a su vez solo puede ser utilizada por quien conoce la clave privada correspondiente. 
 
@@ -513,14 +516,53 @@ Esto nos va a crear en la carpeta 'address_1' tres ficheros:
 - La clave pública (key.pub).
 - La dirección (address, se deriva de la clave pública).
 
+> Crea tres conjuntos de claves/direcciones como prueba, serán útiles para el último ejercicio. Estarán en las carpetas address_1, address_2 y address_3
+
 ### Generar genesis.json y claves de nodos
 
-*Pendiente*
-### Configuración de los nodos (carpetas configNodes y networkFiles)
-*Pendiente*
+El fichero **[genesis.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/genesis.json)** es un archivo fundamental que define el bloque inicial ("bloque génesis") y la configuración de la cadena de bloques que será utilizada por todos los nodos de la red. Es el punto de partida de la blockchain: en él se establecen los parámetros de funcionamiento de la cadena (algoritmo de consenso, tiempo entre bloques, cuentas con saldo inicial…) y define las reglas bajo las que operará la red.
 
-## 4.2 Comunicación entre nodos
+**¿Qué campos contiene genesis.json?**
+
+- `config`: Define la identidad y las reglas de la red. Aquí se indica, por ejemplo, el `chainId`, la activación de hardforks (`londonBlock`) y la configuración del consenso `qbft` (`blockperiodseconds`, `epochlength`, `requesttimeoutseconds`).
+- `nonce`: Valor heredado del formato de génesis de Ethereum. En redes Besu con QBFT suele fijarse a `0x0` y no se usa para minado.
+- `timestamp`: Marca temporal del bloque génesis. Solo afecta al bloque inicial y debe coincidir en todos los nodos.
+- `gasLimit`: Límite máximo de gas por bloque a partir del arranque de la red. Condiciona cuántas transacciones o cuánto trabajo puede entrar en cada bloque.
+- `difficulty`: Campo heredado de redes basadas en prueba de trabajo. En QBFT no se usa para competir por minado, por lo que normalmente se deja con un valor fijo como `0x1`.
+- `mixHash`: Campo heredado de Ethereum que, en QBFT, toma un valor constante para identificar el tipo de consenso utilizado.
+- `coinbase`: Dirección asociada al beneficiario del bloque. En este contexto suele ponerse a `0x0000000000000000000000000000000000000000`.
+- `alloc`: Estado inicial de cuentas. Permite asignar balances desde el primer bloque y, en ficheros generados para laboratorio, puede incluir también campos auxiliares como `privateKey` o `comment`, aunque la red solo utiliza el balance y la dirección.
+- `extraData`: Campo clave en redes QBFT. Incluye los datos extra del bloque génesis y, especialmente, la información necesaria para fijar los validadores iniciales de la red.
+  
+Este fichero debe ser idéntico en todos los nodos para que pertenezcan a la misma red.
+
+[Aquí](https://besu.hyperledger.org/private-networks/how-to/configure/consensus/qbft) más información acerca de qué signican esos campos y cómo se configuran.
+
+**¿Cómo se genera?**
+
+Se crea automáticamente a partir de un fichero de configuración como **[qbftConfigFile.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/qbftConfigFile.json)**, que define parámetros como el tipo de consenso (por ejemplo, QBFT), el número de nodos validadores y otros ajustes iniciales. El comando de Besu:
+
+`besu operator generate-blockchain-config --config-file=qbftConfigFile.json --to=networkFilesNEW --private-key-file-name=key`
+
+toma ese archivo de configuración y genera en la carpeta de salida (*networkFilesNEW* en este caso para no sobreescribir la existente *networkFiles*) el **genesis.json** junto con las claves y direcciones de los nodos. Las claves (fichero *key*) de los nodos que van a formar parte de la red están cada una en una carpeta distinta cuyo nombre es la dirección asociada a esa clave.
+
+> Ve a la carpeta donde se encuentra qbftConfigFile.json (Ikastaroa_Blockchain_Sareak/Hedapena) y ejecuta el comando para ver cómo se crean los ficheros mencionados dentros de la carpeta networkFilesNEW. Una de las claves te vendrá bien para el ejercicio que se plantea al final.
+
+Para cada nodo en realidad solamente necesitamos ese fichero *key*, con la configuració que estamos utilizando basta con copiarlo a *networkFiles/keys* como keyX (siendo X el índice del nodo) para que se referencien desde el docker-composeX.yml de cada nodo.
+
+### Configuración de los nodos (carpetas configNodes y networkFiles)
+
+En la carpeta *configNodes* está el fichero **[node-config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/configNodes/node-config.toml)** (en este caso común para todos) donde se configuran parámetros del nodo. Además hay una serie de ficheros de configuración a los que se hace referencia en el mismo y hay que modificar:
+
+- En el fichero *networkFiles/static-nodes.json* las direcciones enode que correspondan a los validadores (con la clave pública + IP:puerto). **Hay que poner las IP públicas de cada nodo.** La clave pública de cada nodo se encuentra en el fichero networkFiles/keys/address_XXX/key.pub de cada nodo.
+
+- En el fichero *networkFiles/nodes_permissions_config.toml* incluir los nodos a los que se permite conectar. **Hay que poner las IP públicas de cada nodo.**
+
+- En el fichero *networkFiles/accounts_permissions_config.toml* incluir las cuentas (direcciones) a las que se permite operar. Vamos a incluir las direcciones de cada nodo, las direcciones configuradas en el génesis y las direcciones asociadas a las claves privadas que van a desplegar contratos en la red.
+
+## 4.4 Comunicación entre nodos
 *Pendiente desarrollar*
+
 ### Protocolo P2P (peer-to-peer)
 
 - Los nodos se conectan entre sí formando una red mesh.
@@ -548,7 +590,7 @@ Hyperledger Besu expone:
 
 *Pendiente desarrollar*
 
-## 4.3 Seguridad en redes Blockchain
+## 4.5 Seguridad en redes Blockchain
 
 ### Criptografía
 
