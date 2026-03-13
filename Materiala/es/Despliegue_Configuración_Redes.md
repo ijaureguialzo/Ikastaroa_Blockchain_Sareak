@@ -449,7 +449,7 @@ Como ejercicios se plantean:
     * Entrega una captura del Ethstats con todos los nodos en marcha y generando bloques (el número de bloque tendrá que ser mayor que el de la captura del apartado anterior y 'Last block' con menos de 10 segundos).
 
 5. Despliega un Smart Contract. Para comprobar que nuestra red ya está operativa y se pueden hacer transacciones, vamos a ejecutar un script que despliega e invoca un contrato ya compilado:
-    * Ve a la carpeta de contratos con `cd ~/besu/Kontratuak/Formularioak`. Ahí se encuentran los ficheros .sol, .abi y .bytecode de un contrato llamado Formularioak.
+    * Ve a la carpeta de contratos con `cd ~/Ikastaroa_Blockchain_Sareak/Garapena/Kontratuak/Formularioak`. Ahí se encuentran los ficheros *.sol*, *.abi* y *.bytecode* de un contrato llamado Formularioak.
     * Ejecuta `python ./hedatu_erabili.py`.
     * Identifica en los mensajes la dirección donde se ha desplegado el contrato y cópialo del terminal (Ctrl. + Mayúsc. + C).
     * Abre con el navegador el fichero `trazabilitatea.html` que se encuentra en la misma carpeta e introduce la dirección del contrato. El número de formulario es 1.
@@ -476,9 +476,15 @@ La máquina Ubuntu Desktop con la que estamos trabajando ya trae instalado lo si
 
 Las máquinas Ubuntu Server (Besu node 1-5) no traen nada instalado.
 
-## 4.2 Estructura de los ficheros de configuración en los nodos Besu:
+## 4.2 Estructura y contenido de los ficheros de configuración en los nodos Besu:
 
-En nuestro caso estamos desplegando una red Hyperledger Besu en cuatro nodos. Como se ha visto en el apartado anterior, el despliegue en cada nodo consiste en iniciar un servicio Docker definido en cada fichero **docker-composeX.yml**.
+En nuestro caso estamos desplegando una red Hyperledger Besu en cuatro nodos.
+
+Para cada nodo los ficheros están estructurados en la carpeta de despliegue (besu) de esta manera:
+
+![Tree](../baliabideak/tree.jpg)
+
+Como se ha visto en el apartado anterior, el despliegue en cada nodo consiste en iniciar un servicio Docker definido en cada fichero **docker-composeX.yml**.
 
 En el fichero [docker-composeX.yml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/docker-compose1.yml) se define la imagen Docker que se va a desplegar en el nodo (en los comentarios se describe lo que hace cada línea de configuración) y sus características. **Echa un vistazo al enlace proporcionado para entender lo que viene configurado**.
 
@@ -487,17 +493,13 @@ Partiendo de este fichero veamos su relación con los demás ficheros fundamenta
 - **[node-config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/configNodes/node-config.toml)**: el fichero de configuración que define las características del nodo. El significado de cada parámetro viene brevemente explicado en un comentario, **accede al enlace proporcionado para verlo**. Es el núcleo de la configuración de cada nodo y como vemos en él se hace referencia a los siguientes ficheros:
   - **[genesis.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/genesis.json)**: fichero que define el bloque inicial y la configuración de la cadena.
   - **publicRSAKeyOperator.pem**: clave pública usada para verificar los tokens de acceso JWT.
-  - **[static-nodes.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/static-nodes.json)**: fichero con la lista de nodos conocidos con los que conectarse al arrancar.
-  - **[nodes_permissions_config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/nodes_permissions_config.toml)**: fichero con las direcciones de los nodos permitidos en la red.
-  - **[accounts_permissions_config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/accounts_permissions_config.toml)**: fichero con las cuentas que tienen permiso para enviar transacciones a la red (desactivado por defecto en nuestro caso).
+  - **[static-nodes.json](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/static-nodes.json)**: fichero con la lista de nodos conocidos con los que conectarse al arrancar. El listado consiste en las direcciones *enode* que corresponden a los nodos (**clave pública + IP:puerto**).
+  - **[nodes_permissions_config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/nodes_permissions_config.toml)**: si en *node-config.toml* hemos activado el permisionado por nodos, en este fichero se indican las direcciones de los nodos que tienen permiso para comunicarse con este nodo. El listado consiste en las direcciones *enode* que corresponden a los nodos (**clave pública + IP:puerto**)
+  - **[accounts_permissions_config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/networkFiles/accounts_permissions_config.toml)**: si en *node-config.toml* hemos activado el permisionado por direcciones, en este fichero se indican las direcciones que tienen permiso para enviar transacciones al nodo (desactivado por defecto en nuestro caso).
 
 - **networkFiles/keys/keyX**: clave privada de cada nodo que lo identifica de forma única.
 
-Para cada nodo los ficheros están estructurados en la carpeta de despliegue (besu) de esta manera:
-
-![Tree](../baliabideak/tree.jpg)
-
-## 4.3 Creación de ficheros con herramientas de Besu:
+## 4.3 Creación de ficheros con herramientas de Besu y del sistema:
 
 ### Generar nuevas direcciones
 
@@ -546,19 +548,33 @@ Se crea automáticamente a partir de un fichero de configuración como **[qbftCo
 
 toma ese archivo de configuración y genera en la carpeta de salida (*networkFilesNEW* en este caso para no sobreescribir la existente *networkFiles*) el **genesis.json** junto con las claves y direcciones de los nodos. Las claves (fichero *key*) de los nodos que van a formar parte de la red están cada una en una carpeta distinta cuyo nombre es la dirección asociada a esa clave.
 
-> Ve a la carpeta donde se encuentra qbftConfigFile.json (Ikastaroa_Blockchain_Sareak/Hedapena) y ejecuta el comando para ver cómo se crean los ficheros mencionados dentros de la carpeta networkFilesNEW. Una de las claves te vendrá bien para el ejercicio que se plantea al final.
+> Ve a la carpeta donde se encuentra qbftConfigFile.json (Ikastaroa_Blockchain_Sareak/Hedapena) y ejecuta el comando para ver cómo se crean los ficheros mencionados dentro de la carpeta networkFilesNEW. Una de las claves te vendrá bien para el ejercicio que se plantea al final.
 
-Para cada nodo en realidad solamente necesitamos ese fichero *key*, con la configuració que estamos utilizando basta con copiarlo a *networkFiles/keys* como keyX (siendo X el índice del nodo) para que se referencien desde el docker-composeX.yml de cada nodo.
+Para arrancar cada nodo en realidad solamente necesitamos ese fichero *key*, con la configuración que estamos utilizando basta con copiarlo a *networkFiles/keys* como *keyX* (siendo X el índice del nodo) para que se referencie desde el *docker-composeX.yml* de cada nodo.
 
-### Configuración de los nodos (carpetas configNodes y networkFiles)
+La otra clave que se genera para cada nodo, *key.pub*, es la clave con la que se va a identificar el nodo junto con la IP en las direcciones *enode* antes mencionadas.
 
-En la carpeta *configNodes* está el fichero **[node-config.toml](https://github.com/aiza-fp/Ikastaroa_Blockchain_Sareak/blob/main/Hedapena/configNodes/node-config.toml)** (en este caso común para todos) donde se configuran parámetros del nodo. Además hay una serie de ficheros de configuración a los que se hace referencia en el mismo y hay que modificar:
+### Claves RSA para tenants y generación de tokens JWT
 
-- En el fichero *networkFiles/static-nodes.json* las direcciones enode que correspondan a los validadores (con la clave pública + IP:puerto). **Hay que poner las IP públicas de cada nodo.** La clave pública de cada nodo se encuentra en el fichero networkFiles/keys/address_XXX/key.pub de cada nodo.
+Para la autenticación segura en la red intervienen tres elementos relacionados entre sí. Antes de verlos, conviene aclarar qué es un **tenant**: en este contexto, un tenant es simplemente la **organización, aplicación o usuario administrador** que va a operar contra la red y que necesita identificarse de forma segura.
 
-- En el fichero *networkFiles/nodes_permissions_config.toml* incluir los nodos a los que se permite conectar. **Hay que poner las IP públicas de cada nodo.**
+- **privateRSAKeyOperator**: Es la **clave privada RSA** del tenant. Se usa para **firmar** los tokens JWT. Debe mantenerse protegida y nunca compartirse.
+- **publicRSAKeyOperator**: Es la **clave pública RSA** asociada a la anterior. Se comparte con los nodos o servicios que tengan que comprobar si un token JWT es auténtico.
+- **tokens JWT (JSON Web Tokens)**: Son tokens que incluyen información de identidad y, según la configuración, también permisos o metadatos de acceso. El token se crea con unos datos concretos y después se **firma con la clave privada** para que no pueda ser falsificado fácilmente.
 
-- En el fichero *networkFiles/accounts_permissions_config.toml* incluir las cuentas (direcciones) a las que se permite operar. Vamos a incluir las direcciones de cada nodo, las direcciones configuradas en el génesis y las direcciones asociadas a las claves privadas que van a desplegar contratos en la red.
+**Proceso de creación y uso del JWT:**  
+1. Se genera un par de claves RSA para el tenant: una **clave privada** y una **clave pública**.  
+2. La **clave privada** se guarda de forma segura en el sistema que va a emitir los tokens.  
+3. La **clave pública** se distribuye a los nodos o servicios que deban validar esos tokens.  
+4. Cuando el tenant necesita autenticarse, se crea un JWT con la información necesaria (por ejemplo, identidad, fechas de validez y permisos).  
+5. Ese JWT se **firma con la clave privada** del tenant.  
+6. El usuario o la aplicación envía el token al acceder a la API o al servicio protegido.  
+7. El nodo o servicio receptor verifica la firma usando la **clave pública**. Si la firma es válida y el token no ha caducado, se acepta la petición.
+
+Puedes encontrar cómo generarlos y más detalles prácticos en el apartado correspondiente del repositorio o en la documentación oficial de Hyperledger Besu.
+
+
+
 
 ## 4.4 Comunicación entre nodos
 *Pendiente desarrollar*

@@ -67,12 +67,6 @@
         dest: "{{ deploy_home }}/besu/Pilotoak/"
         mode: preserve
 
-    - name: Desplegar la carpeta Kontratuak en ~/besu/Kontratuak
-      ansible.builtin.copy:
-        src: "{{ repo_root }}/Garapena/Kontratuak/"
-        dest: "{{ deploy_home }}/besu/Kontratuak/"
-        mode: preserve
-
     - name: Asignar la propiedad de la carpeta besu al usuario ansible_user
       ansible.builtin.file:
         path: "{{ deploy_home }}/besu"
@@ -165,11 +159,10 @@
         group: "{{ ansible_user }}"
         recurse: true
 
-    - name: Iniciar el nodo Besu con su fichero docker-compose
+    - name: Iniciar el nodo Besu con su fichero docker-compose en cualquier caso
       ansible.builtin.shell:
         cmd: docker compose -f docker-compose{{ node_index }}.yml up -d
         chdir: "{{ deploy_home }}/besuNode"
-      changed_when: true
 
   # Handlers: se ejecutan al final del play solo si alguna tarea los notificó por haber cambiado.
   handlers:
