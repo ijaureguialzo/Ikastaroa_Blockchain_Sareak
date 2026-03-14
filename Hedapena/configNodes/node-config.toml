@@ -72,16 +72,6 @@ network-id="1"
 genesis-file="/var/lib/besu/QBFT-Network/networkFiles/genesis.json"
 
 # =============================================================================
-# Métricas (Prometheus)
-# =============================================================================
-# Habilita el exportador de métricas para Prometheus.
-metrics-enabled=true
-# Dirección en la que escucha el servidor de métricas. 0.0.0.0 permite el acceso desde el servidor de monitorización.
-metrics-host="0.0.0.0"
-# Puerto en el que Prometheus accede a las métricas de Besu (por defecto 9545).
-metrics-port=9545
-
-# =============================================================================
 # Autenticación JWT para RPC
 # =============================================================================
 # Autenticación HTTP deshabilitada por ahora. Solo WebSocket requiere JWT.

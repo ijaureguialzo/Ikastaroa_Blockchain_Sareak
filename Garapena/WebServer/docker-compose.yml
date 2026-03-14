@@ -32,46 +32,6 @@ services:
     # Conecta el servicio a la red 'server_network'
     networks:
       - server_network
-
-  prometheus:
-    # Imagen oficial de Prometheus para recopilar las métricas de los nodos Besu
-    image: prom/prometheus:latest
-    # Establece el nombre de host del contenedor como 'prometheus'
-    hostname: prometheus
-    # Reinicia siempre el servicio a menos que se detenga explícitamente
-    restart: always
-    # Indica el fichero de configuración y el directorio de persistencia interno
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-    # Monta la configuración y el volumen persistente de Prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      #- prometheus_data:/prometheus
-    # Conecta el servicio a la red 'server_network'
-    networks:
-      - server_network
-
-  grafana:
-    # Imagen oficial de Grafana para visualizar las métricas recopiladas
-    image: grafana/grafana:latest
-    # Establece el nombre de host del contenedor como 'grafana'
-    hostname: grafana
-    # Reinicia siempre el servicio a menos que se detenga explícitamente
-    restart: always
-    # Ajusta Grafana para funcionar detrás del proxy con el dominio monitorizado
-    environment:
-      - GF_SERVER_DOMAIN=monitorea.localhost
-      - GF_SERVER_ROOT_URL=http://monitorea.localhost/
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    # Monta la provisión de orígenes de datos y el volumen persistente de Grafana
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      #- grafana_data:/var/lib/grafana
-    # Conecta el servicio a la red 'server_network'
-    networks:
-      - server_network
   
   webserver:
     # Utiliza la imagen oficial más reciente de NGINX
@@ -98,9 +58,3 @@ networks:
     name: server_network
     # Usa el driver bridge para la red de Docker
     driver: bridge
-
-#volumes:
-  # Volumen persistente para retener las series temporales de Prometheus
-  #prometheus_data:
-  # Volumen persistente para conservar la configuración y paneles de Grafana
-  #grafana_data:
