@@ -76,8 +76,8 @@ genesis-file="/var/lib/besu/QBFT-Network/networkFiles/genesis.json"
 # =============================================================================
 # Habilita el exportador de métricas para Prometheus.
 metrics-enabled=true
-# Dirección en la que escucha el servidor de métricas. 127.0.0.1 restringe el acceso a localhost.
-metrics-host="127.0.0.1"
+# Dirección en la que escucha el servidor de métricas. 0.0.0.0 permite el acceso desde el servidor de monitorización.
+metrics-host="0.0.0.0"
 # Puerto en el que Prometheus accede a las métricas de Besu (por defecto 9545).
 metrics-port=9545
 

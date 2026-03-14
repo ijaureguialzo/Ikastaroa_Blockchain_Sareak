@@ -17,6 +17,8 @@ services:
       - 8545:8545
       # Puerto para la API JSON-RPC WebSocket (por defecto 8546)
       - 8546:8546
+      # Puerto para las métricas Prometheus de Besu (por defecto 9545)
+      - 9545:9545
       # Puerto para comunicación P2P entre nodos (TCP, por defecto 30303)
       - 30303:30303
       # Puerto para comunicación P2P entre nodos (UDP)

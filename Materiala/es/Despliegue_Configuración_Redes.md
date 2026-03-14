@@ -745,7 +745,7 @@ Repasemos las principales características y medidas de seguridad que se pueden 
 
 - Logs de Besu.
 - Ethstats.
-- Prometheus + Grafana para métricas.
+- Prometheus + Grafana para métricas. En este despliegue Prometheus recopila la información del puerto 9545 de cada nodo Besu y Grafana queda accesible en `http://monitorea.localhost`.
 - Alertas: Conviene definir alertas para situaciones como “número de peers por debajo de un umbral”, “bloqueo en la producción de bloques”, “falta de sincronización” o “uso elevado de CPU, memoria o disco”.
 
 ### Buenas prácticas
