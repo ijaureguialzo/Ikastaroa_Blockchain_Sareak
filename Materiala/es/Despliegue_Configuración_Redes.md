@@ -763,6 +763,7 @@ Repasemos las principales características y medidas de seguridad que se pueden 
 Este apartado es un ejercicio final que consiste en hacer un nuevo despliegue teniendo en cuenta todo lo todo lo visto hasta ahora. Las características del despliegue a realizar son éstas:
 - 5 nodos (las direcciones IP son 192.168.100.1-5).
 - Las claves propias de cada nodo son nuevas y distintas entre sí.
+- Los token JWT son distintos en cada nodo y generados a partir de claves privadas distintas.
 - Los 5 nodos exisitirán desde el principio como validadores y solamente ellos pueden participar en la red.
 - El tiempo entre bloques será de 15 segundos.
 
