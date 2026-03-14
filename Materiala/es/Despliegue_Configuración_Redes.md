@@ -472,7 +472,6 @@ La máquina Ubuntu Desktop con la que estamos trabajando ya trae instalado lo si
 - Ansible
 - Java 25
 - Hyperledger Besu 26.2.0 (el software con las herramientas, no un nodo)
-- Node.js 24.14
 
 Las máquinas Ubuntu Server (Besu node 1-5) no traen nada instalado.
 
@@ -756,24 +755,44 @@ Repasemos las principales características y medidas de seguridad que se pueden 
 
 **Ejercicio: añadir un quinto nodo a la red y convertirlo en validador con votos en los demás nodos. Dos partes: añadir un quinto nodo y convertirlo en validador.**
 
+Para añadir un quinto nodo tendrás que:
+
+- Crear las claves y dirección del nodo (comando *besu*). Copiar esa clave como **key5** a networkFiles/keys
+- Crear el fichero JWT_5 en networkFiles/JWTkeys (solamente crear una copia de los existentes, van a ser todos iguales en este despliegue por simplicidad)
+- Añadir el *enode* a los ficheros *static-nodes.json* y *nodes_permissions_config.toml*.
+- Modificar el fichero *inventory.yml* para añadir el nuevo nodo. En principio no necesitamos tocal el Playbook de Ansible porque el procedimiento es el mismo.
+- Crear un nuevo docker-compose5.yml adaptado al nodo 5.
+- Ejecutar el Playbook de Ansible.
+- Comprobar en Ethstats que el nuevo nodo forma parte de la red.
+- Entrega: una captura del Ethstats donde se vean los 5 nodos en funcionamiento y creando bloques (el tiempo desde que se creó el último bloque tiene que ser menor de 10s.)
+
+Convertir el quinto nodo en validador:
+
+- Comprueba (comando de Websocket `qbft_getValidatorsByBlockNumber` visto anteriormente)que a pesar de tener 5 nodos, los bloques solamente los validan 4 nodos distintos, los 4 originales.
+- Busca en la [documentación](https://besu.hyperledger.org/private-networks/reference/api#qbft-methods) qué comando hay que ejecutar en los nodos que ya son validadores para proponer el nuevo nodo como validador.
+- Ejecuta los comandos necesarios para añadir el quinto nodo como validador.
+- Entrega: una captura en la que se vea que el nuevo nodo está entre los validadores del último bloque producido (el comando más la respuesta)
+
 ---
 
 # Parte 5: Configuración y despliegue de una red Blockchain
 
 Este apartado es un ejercicio final que consiste en hacer un nuevo despliegue teniendo en cuenta todo lo todo lo visto hasta ahora. Las características del despliegue a realizar son éstas:
-- 5 nodos (las direcciones IP son 192.168.100.1-5).
+- 2 nodos (las direcciones IP son 192.168.100.1-2).
 - Las claves propias de cada nodo son nuevas y distintas entre sí.
 - Los token JWT son distintos en cada nodo y generados a partir de claves privadas distintas.
-- Los 5 nodos exisitirán desde el principio como validadores y solamente ellos pueden participar en la red.
-- El tiempo entre bloques será de 15 segundos.
+- Los 2 nodos exisitirán desde el principio como validadores y solamente ellos pueden participar en la red.
+- El tiempo entre bloques será de 20 segundos.
 
-Ten en cuenta que prácticamente todos los ficheros de configuración analizados en el apartado anterior se verán afectados.
+Ten en cuenta que prácticamente todos los ficheros de configuración se verán afectados y hay que recrearlos.
 
-El despliegue se podría hacer manualmente (copiando los ficheros necesarios a cada nodo y desplegándolo) pero se recomienda hacer pequeñas modificaciones a los ficheros existentes de despliegue con Ansible (*hedapena-AnsiblePlaybook.yml* y *inventory.yml*) para adaptarlo al ejercicio. 
+Para el despliegue se recomienda hacer pequeñas modificaciones a los ficheros existentes de despliegue con Ansible (*hedapena-AnsiblePlaybook.yml* y *inventory.yml*) para adaptarlo al ejercicio. 
 
 Puedes 'recrear' las máquinas para que vuelvan a su estado inicial y hacer un despliegue limpio (se eliminará lo que esté desplegado o modificado):
 
 ![Recreate](../baliabideak/recreate.jpg)
+
+**Entrega: 1.- Captura(s) del Ethstats donde se vean los dos nodos activos, generando bloques y en el apartado 'Active Nodes' (arriba a la derecha) se ve 2/2** 
 
 ---
 
@@ -790,5 +809,9 @@ Puedes 'recrear' las máquinas para que vuelvan a su estado inicial y hacer un d
 | **Ledger** | Conjunto formado por la cadena de bloques y el estado global derivado. |
 | **Hard fork** | Modificación importante y no retrocompatible del protocolo, que obliga a actualizar los nodos. En Ethereum, los hard forks se utilizan para introducir nuevas funcionalidades o corregir errores críticos. |
 | **Byzantine Fault Tolerance (BFT)** | Capacidad de una red distribuida para seguir operando correctamente incluso si algunos de sus nodos actúan de forma maliciosa o fallan de manera arbitraria. En blockchain, es crucial para que el consenso sea seguro frente a fallos o ataques de nodos. |
+| **RPC** | Remote Procedure Call. Un protocolo que permite a un programa ejecutar funciones o procedimientos en otra máquina de la red como si fueran locales, facilitando la comunicación entre cliente y servidor en sistemas distribuidos. |
+| **JSON** | JavaScript Object Notation. Un formato ligero para el intercambio de datos, legible por humanos y fácilmente parseable por máquinas. Es utilizado comúnmente para enviar datos estructurados entre cliente y servidor. |
+| **Websocket** | Protocolo que permite una comunicación bidireccional y persistente a través de una única conexión TCP entre cliente y servidor. Es muy usado en aplicaciones que requieren actualización en tiempo real, como dashboards blockchain (Ethstats, exploradores). |
+| **API** | Application Programming Interface. Conjunto de definiciones y protocolos que permite a una aplicación comunicarse e interactuar con otra, facilitando el acceso a funcionalidades o datos específicos sin conocer su implementación interna. |
 
 ---
