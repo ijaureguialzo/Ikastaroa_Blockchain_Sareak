@@ -108,16 +108,16 @@
         dest: "{{ deploy_home }}/besuNode/networkFiles/nodes_permissions_config.toml"
       - src: "{{ hedapena_root }}/networkFiles/accounts_permissions_config.toml"
         dest: "{{ deploy_home }}/besuNode/networkFiles/accounts_permissions_config.toml"
-      - src: "{{ hedapena_root }}/networkFiles/JWTkeys/publicRSAKeyOperator.pem"
-        dest: "{{ deploy_home }}/besuNode/networkFiles/JWTkeys/publicRSAKeyOperator.pem"
     # Ficheros específicos del nodo, seleccionados mediante node_index desde inventory.yml.
     hedapena_node_files:
       - src: "{{ hedapena_root }}/docker-compose{{ node_index }}.yml"
         dest: "{{ deploy_home }}/besuNode/docker-compose{{ node_index }}.yml"
       - src: "{{ hedapena_root }}/networkFiles/keys/key{{ node_index }}"
         dest: "{{ deploy_home }}/besuNode/networkFiles/keys/key{{ node_index }}"
-      - src: "{{ hedapena_root }}/networkFiles/JWTkeys/JWT_{{ node_index }}"
+      - src: "{{ hedapena_root }}/jwts/{{ node_index }}/JWT_{{ node_index }}"
         dest: "{{ deploy_home }}/besuNode/networkFiles/JWTkeys/JWT_{{ node_index }}"
+      - src: "{{ hedapena_root }}/jwts/{{ node_index }}/publicRSAKeyOperator{{ node_index }}.pem"
+        dest: "{{ deploy_home }}/besuNode/networkFiles/JWTkeys/publicRSAKeyOperator.pem"
   tasks:
     - name: Crear la estructura de carpetas necesaria en ~/besuNode
       ansible.builtin.file:
