@@ -2,13 +2,13 @@
   "genesis": {
     "config": {
       "chainId": 1337,
-      "londonBlock" : 0,
+      "londonBlock": 0,
       "zeroBaseFee": true,
       "contractSizeLimit": 2147483647,
       "qbft": {
-        "blockperiodseconds": 10,
+        "blockperiodseconds": 20,
         "epochlength": 30000,
-        "requesttimeoutseconds": 20
+        "requesttimeoutseconds": 30
       }
     },
     "nonce": "0x0",
@@ -18,27 +18,27 @@
     "mixHash": "0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",
     "coinbase": "0x0000000000000000000000000000000000000000",
     "alloc": {
-      "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73" : {
-        "privateKey" : "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63",
-        "comment" : "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
-        "balance" : "90000000000000000000000"
+      "0xa8dc65376033f6059621e76af132cd90c624f96c": {
+        "privateKey": "0x87bddde15a3969f013c1084ece51ec3435f575d3219ac3da45f12c3ab6158ad6",
+        "comment": "direccion_1",
+        "balance": "90000000000000000000000"
       },
-      "0x627306090abaB3A6e1400e9345bC60c78a8BEf57" : {
-        "privateKey" : "0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3",
-        "comment" : "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
-        "balance" : "90000000000000000000000"
+      "0x1db7f601e68b70376d703017e2f9c2f0beecf001": {
+        "privateKey": "0xe42fcbf92544aead5ad43b889638ca3e30437098322c808864553c0ba8d6fb8b",
+        "comment": "direccion_2",
+        "balance": "90000000000000000000000"
       },
-      "0xf17f52151EbEF6C7334FAD080c5704D77216b732" : {
-        "privateKey" : "0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f",
-        "comment" : "private key and this comment are ignored.  In a real chain, the private key should NOT be stored",
-        "balance" : "90000000000000000000000"
+      "0xdf032104750eb4f0f01d5903767f864dd8f3b1bf": {
+        "privateKey": "0xfcff396d1943554cf8d53321210cf84f5f111fe6a24f1164224227acfa163ee8",
+        "comment": "direccion_3",
+        "balance": "90000000000000000000000"
       }
     }
   },
   "blockchain": {
     "nodes": {
       "generate": true,
-      "count": 4
+      "count": 2
     }
   }
 }
