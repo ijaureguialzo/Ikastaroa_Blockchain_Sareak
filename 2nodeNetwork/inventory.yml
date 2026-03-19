@@ -10,12 +10,6 @@ all:
         besu_node2:
           ansible_host: 192.168.100.2
           node_index: 2
-        besu_node3:
-          ansible_host: 192.168.100.3
-          node_index: 3
-        besu_node4:
-          ansible_host: 192.168.100.4
-          node_index: 4
     webserver:
       hosts:
         web:
@@ -23,8 +17,8 @@ all:
           ansible_connection: local
     all_servers:
       children:
-        besu_nodes: {}
-        webserver: {}
+        besu_nodes: { }
+        webserver: { }
   vars:
     ansible_user: isard
     deploy_home: /home/isard
