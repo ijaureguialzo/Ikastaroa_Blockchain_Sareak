@@ -22,7 +22,7 @@ services:
       # Puerto para comunicación P2P entre nodos (UDP)
       - 30303:30303/udp
     # Comando de inicio de Besu con la ruta al archivo de configuración
-    command: --config-file=/var/lib/besu/QBFT-Network/configNodes/node-config_1.toml
+    command: --config-file=/var/lib/besu/QBFT-Network/configNodes/node-config.toml
     # Variables de entorno
     environment:
       # Ruta al archivo de clave privada del nodo
