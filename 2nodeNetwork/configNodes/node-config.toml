@@ -1,0 +1,143 @@
+# Configuración del nodo Besu para la red QBFT.
+# Referencia de opciones: https://besu.hyperledger.org/public-networks/reference/cli/options
+
+# =============================================================================
+# Registro (logging)
+# =============================================================================
+# Nivel de detalle de los logs: TRACE, DEBUG, INFO, WARN, ERROR, OFF.
+# DEBUG muestra información detallada para depuración.
+logging="DEBUG"
+
+# =============================================================================
+# Gas y transacciones
+# =============================================================================
+# Precio mínimo de gas aceptado (en wei). 0 permite transacciones sin coste de gas.
+min-gas-price=0
+
+# =============================================================================
+# Almacenamiento de datos
+# =============================================================================
+# Formato de almacenamiento: FOREST (necesario para privacidad) o BONSAI (por defecto en versiones recientes).
+data-storage-format="FOREST"
+# Ruta del directorio donde Besu guarda la base de datos y el estado de la cadena.
+data-path="/var/lib/besu/QBFT-Network/Node/data"
+
+# =============================================================================
+# Red P2P (peer-to-peer)
+# =============================================================================
+# Puerto TCP/UDP para la comunicación entre nodos de la red.
+p2p-port="30303"
+# Dirección IP en la que el nodo escucha conexiones P2P entrantes desde otros nodos de la red. 
+# Si se establece en 0.0.0.0, el nodo aceptará conexiones P2P provenientes de cualquier interfaz de red disponible en el equipo, 
+# permitiendo que otros nodos de la red se conecten sin restricciones de interfaz local. 
+# Esto es útil para nodos que deben estar accesibles desde diferentes redes o subredes.
+p2p-host="0.0.0.0"
+
+# =============================================================================
+# API JSON-RPC HTTP
+# =============================================================================
+# Habilita o deshabilita el servicio JSON-RPC por HTTP.
+rpc-http-enabled=true
+# Dirección en la que escucha el servidor HTTP. 0.0.0.0 acepta conexiones P2P provenientes de cualquier interfaz de red disponible en el equipo.
+rpc-http-host="0.0.0.0"
+# Puerto TCP en el que escucha el JSON-RPC HTTP (por defecto 8545).
+rpc-http-port="8545"
+# APIs JSON-RPC expuestas por HTTP.
+rpc-http-api=["DEBUG","ETH","TXPOOL","NET","TRACE","WEB3","PLUGINS"]
+# Orígenes CORS permitidos. "all" permite que aplicaciones web (Remix, exploradores de bloques) accedan al nodo.
+rpc-http-cors-origins=["all"]
+
+# =============================================================================
+# API JSON-RPC WebSocket
+# =============================================================================
+# Habilita o deshabilita el servicio JSON-RPC por WebSocket.
+rpc-ws-enabled=true
+# Dirección en la que escucha el servidor HTTP. 0.0.0.0 acepta conexiones P2P provenientes de cualquier interfaz de red disponible en el equipo.
+rpc-ws-host="0.0.0.0"
+# Puerto TCP en el que escucha el JSON-RPC WebSocket (por defecto 8546).
+rpc-ws-port="8546"
+# APIs JSON-RPC expuestas por WebSocket (incluye ADMIN, QBFT, PERM para operaciones administrativas).
+rpc-ws-api=["ADMIN","DEBUG","MINER","ETH","TXPOOL","NET","TRACE","WEB3","PLUGINS","QBFT","PERM"]
+
+# =============================================================================
+# Identificador de red
+# =============================================================================
+# Identificador único de la red P2P. Por defecto coincide con el chain ID del genesis.
+network-id="1"
+
+# =============================================================================
+# Genesis (bloque inicial)
+# =============================================================================
+# Ruta al fichero genesis.json que define el bloque inicial y la configuración de la cadena.
+genesis-file="/var/lib/besu/QBFT-Network/networkFiles/genesis.json"
+
+# =============================================================================
+# Autenticación JWT para RPC
+# =============================================================================
+# Autenticación HTTP deshabilitada por ahora. Solo WebSocket requiere JWT.
+#rpc-http-authentication-enabled=true
+#rpc-http-authentication-jwt-public-key-file="/var/lib/besu/QBFT-Network/networkFiles/TesseraKeys/publicRSAKeyOperator.pem"
+# Habilita autenticación JWT para el RPC por WebSocket (requerido para APIs administrativas).
+rpc-ws-authentication-enabled=true
+# Ruta a la clave pública RSA usada para verificar los tokens JWT.
+rpc-ws-authentication-jwt-public-key-file="/var/lib/besu/QBFT-Network/networkFiles/JWTkeys/publicRSAKeyOperator.pem"
+
+# =============================================================================
+# Lista de hosts permitidos
+# =============================================================================
+# Hosts que pueden conectarse al nodo. "*" permite cualquier host.
+host-allowlist=["*"]
+
+# =============================================================================
+# Descubrimiento y nodos estáticos
+# =============================================================================
+# Si los nodos están en static-nodes.json, no es necesario definir bootnodes aquí.
+# Lista de nodos a los que el nodo intentará conectarse al arrancar. Se usa principalmente en redes públicas o mixtas para facilitar el descubrimiento inicial. En redes privadas con static-nodes.json, normalmente no es necesario.
+# bootnodes=[]
+# Fichero con la lista de nodos conocidos con los que conectarse al arrancar.
+static-nodes-file="/var/lib/besu/QBFT-Network/networkFiles/static-nodes.json"
+# Habilita el descubrimiento de nuevos nodos en la red.
+discovery-enabled=true
+
+# =============================================================================
+# Permisos de nodos (opcional)
+# =============================================================================
+# Habilita el control de qué nodos pueden conectarse (lista blanca).
+permissions-nodes-config-file-enabled=true
+# Fichero con las direcciones de los nodos permitidos.
+permissions-nodes-config-file="/var/lib/besu/QBFT-Network/networkFiles/nodes_permissions_config.toml"
+
+# =============================================================================
+# Permisos de cuentas (opcional)
+# =============================================================================
+# Restringe qué cuentas pueden enviar transacciones. Descomentar para activar.
+#permissions-accounts-config-file-enabled=true
+#permissions-accounts-config-file="/var/lib/besu/QBFT-Network/networkFiles/accounts_permissions_config.toml"
+
+# =============================================================================
+# Sincronización y conexiones P2P
+# =============================================================================
+# Prioridad aleatoria de conexiones entrantes. Evita grupos cerrados de peers en redes pequeñas.
+random-peer-priority-enabled=true
+# Número mínimo de peers antes de iniciar la sincronización.
+sync-min-peers=1
+# Modo de sincronización: FULL descarga todos los bloques (recomendado para redes privadas).
+sync-mode="FULL"
+# Deshabilita el límite de porcentaje de conexiones P2P remotas iniciadas por peers.
+remote-connections-limit-enabled=false
+
+# =============================================================================
+# Pool de transacciones
+# =============================================================================
+# Pool de transacciones ordenadas por secuencia (por defecto en redes privadas).
+tx-pool="SEQUENCED"
+# Las transacciones enviadas por RPC no tienen prioridad sobre las remotas en el pool.
+tx-pool-no-local-priority=true
+# Porcentaje máximo de transacciones de un mismo emisor en el pool (0–1]. 0.15 = 15%.
+tx-pool-limit-by-account-percentage=0.15
+
+# =============================================================================
+# Límites de conexiones RPC
+# =============================================================================
+# Número máximo de conexiones HTTP JSON-RPC simultáneas. Por defecto 80.
+rpc-http-max-active-connections=80

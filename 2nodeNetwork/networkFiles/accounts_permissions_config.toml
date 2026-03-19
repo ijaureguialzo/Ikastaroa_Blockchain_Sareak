@@ -1,0 +1,13 @@
+accounts-allowlist=[
+    "0x867e3DCc2E546AB8d62aB8B25E6800C328ca2DD8",
+    "0x89b84B7FA93E429F2ce4632505074eED74E89351",
+    "0x92C83b4052230b836E100C42701cDc83d7baEb8a",
+    "0xC6261C951d52b563d6a91afB774Db1c2516CaAC4",
+    "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73",
+    "0x627306090abaB3A6e1400e9345bC60c78a8BEf57",
+    "0xf17f52151EbEF6C7334FAD080c5704D77216b732"
+]
+# las cuatro primeras son las direcciones asociadas las claves privadas de los 4 nodos.
+# las tres siguientes son direcciones con ether definidas en el genesis.json
+# Hay que asegurarse de que están las direcciones asociadas a las claves privadas que van a desplegar contratos en la red.
+
